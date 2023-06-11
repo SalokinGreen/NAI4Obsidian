@@ -40,21 +40,36 @@ export default function buildSettings(pkg: Package) {
 	let repetition_penalty_frequency = Number(pkg.repetition_penalty_frequency);
 	let repetition_penalty_presence = Number(pkg.repetition_penalty_presence);
 	let order = pkg.order.split(",").map((n) => Number(n));
+	// put settings in. If 0, don't add.
+	tokens !== 0 ? ((settings as any)["max_length"] = tokens) : 40;
+	top_p !== 0 ? ((settings as any)["top_p"] = top_a) : null;
+	top_k !== 0 ? ((settings as any)["top_k"] = top_k) : null;
+	temperature !== 0 ? ((settings as any)["temperature"] = temperature) : 0.9;
+	repetition_penalty !== 0
+		? ((settings as any)["repetition_penalty"] = repetition_penalty)
+		: 0.9;
+	typical_p !== 0 ? ((settings as any)["typical_p"] = typical_p) : 0.9;
+	tail_free_sampling !== 0
+		? ((settings as any)["tail_free_sampling"] = tail_free_sampling)
+		: 0.9;
+	repetition_penalty_range !== 0
+		? ((settings as any)["repetition_penalty_range"] =
+				repetition_penalty_range)
+		: 0.9;
+	repetition_penalty_slope !== 0
+		? ((settings as any)["repetition_penalty_slope"] =
+				repetition_penalty_slope)
+		: 0.9;
+	repetition_penalty_frequency !== 0
+		? ((settings as any)["repetition_penalty_frequency"] =
+				repetition_penalty_frequency)
+		: 0.9;
+	repetition_penalty_presence !== 0
+		? ((settings as any)["repetition_penalty_presence"] =
+				repetition_penalty_presence)
+		: 0.9;
+	(settings as any)["order"] = order;
 
 	// build settings
-	return (settings = {
-		max_length: tokens,
-		temperature,
-		top_p,
-		top_k,
-		repetition_penalty,
-		top_a,
-		typical_p,
-		tail_free_sampling,
-		repetition_penalty_range,
-		repetition_penalty_slope,
-		repetition_penalty_frequency,
-		repetition_penalty_presence,
-		order,
-	});
+	return settings;
 }

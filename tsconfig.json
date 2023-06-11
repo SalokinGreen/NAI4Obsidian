@@ -14,5 +14,6 @@
 		"strictNullChecks": true,
 		"lib": ["DOM", "ES5", "ES6", "ES7"]
 	},
-	"include": ["**/*.ts", "**/*.js"]
+	"include": ["**/*.ts", "**/*.js"],
+	"exclude": ["./utils/getNaiKey.js"]
 }

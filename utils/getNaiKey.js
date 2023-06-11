@@ -1,6 +1,5 @@
 import _sodium from "libsodium-wrappers-sumo";
 import { requestUrl } from "obsidian";
-import axios from "axios";
 export default async function getKey(email, password) {
 	await _sodium.ready;
 	const sodium = _sodium;

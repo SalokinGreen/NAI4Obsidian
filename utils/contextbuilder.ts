@@ -1,6 +1,27 @@
 const { Encoder } = require("nai-js-tokenizer");
 const tokenizerData = require("../tokenizers/nerdstash_tokenizer.json");
-
+interface Tks {
+	[key: string]: {
+		[key: string]: number;
+	};
+}
+const tks: Tks = {
+	opus: {
+		"clio-v1": 8196,
+		"krake-v2": 2048,
+		"euterpe-v2": 2048,
+	},
+	scroll: {
+		"clio-v1": 6488,
+		"krake-v2": 0,
+		"euterpe-v2": 2048,
+	},
+	tablet: {
+		"clio-v1": 3000,
+		"krake-v2": 0,
+		"euterpe-v2": 1024,
+	},
+};
 const encoder = new Encoder(
 	tokenizerData.vocab,
 	tokenizerData.merges,
@@ -47,9 +68,9 @@ export default function ContextBuilder(
 
 	const attgTokens = encoder.encode(attgString);
 	const attgTokensLength = attgTokens.length;
-
+	const defaultTokens: number = tks[sub][model];
 	let maxSize =
-		8196 -
+		defaultTokens -
 		tokens -
 		prefixTokens -
 		generatedTokens -
@@ -64,19 +85,9 @@ export default function ContextBuilder(
 	return finalConext;
 }
 function cleanMarkdown(text: string) {
+	console.log("Before: " + text);
 	// remove markdown
-	text = text.replace(/(\*\*|__)(.*?)\1/gms, "$2");
-	text = text.replace(/(\*|_)(.*?)\1/gms, "$2");
-	text = text.replace(/~~(.*?)~~/gms, "$1");
-	text = text.replace(/`(.*?)`/gms, "$1");
-	text = text.replace(/!\[(.*?)\]\((.*?)\)/gms, "$1");
-	text = text.replace(/\[(.*?)\]\((.*?)\)/gms, "$1");
-	text = text.replace(/<\/?("[^"]*"|'[^']*'|[^>])*(>|$)/gms, "");
-	text = text.replace(/\n/gms, " ");
-	text = text.replace(/\s\s+/gms, " ");
-	// remove trailing spaces
-	text = text.trim();
-	// remove double newlines
-	text = text.replace(/\n\n/gms, "\n");
+
+	console.log("After: " + text);
 	return text;
 }

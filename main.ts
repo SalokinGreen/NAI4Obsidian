@@ -12,6 +12,7 @@ import {
 import getKey from "utils/getNaiKey";
 import buildSettings from "utils/buildSettings";
 import ContextBuilder from "utils/contextbuilder";
+import generate from "utils/generate";
 interface MyPluginSettings {
 	email: string;
 	password: string;
@@ -98,7 +99,9 @@ export default class NAI4Obsidian extends Plugin {
 					this.settings.email,
 					this.settings.password
 				);
-				new Notice(key);
+				new Notice("GOT IT!");
+				this.settings.apiKey = key;
+				await this.saveSettings();
 			},
 		});
 		this.addCommand({
@@ -139,7 +142,24 @@ export default class NAI4Obsidian extends Plugin {
 						Number(this.settings.tokens),
 						this.settings.generate_until_sentence
 					);
-					console.log(context);
+					const settings = await buildSettings({
+						...this.settings,
+					});
+					const generated = await generate(
+						context,
+						settings,
+						this.settings.apiKey,
+						this.settings.model,
+						this.settings.prefix
+					);
+					console.log(generated);
+					codeMirror.replaceRange(
+						generated,
+						cursorPosition,
+						cursorPosition
+					);
+				} else {
+					new Notice("No active Markdown file.");
 				}
 			},
 		});
