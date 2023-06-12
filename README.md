@@ -5,7 +5,7 @@ Wouldn't you like little fren who writes with you? A brother in arms? A companio
 ## Installation
 
 1. Download the latest release from the [releases page](https://github.com/SalokinGreen/nai-obsidian-plugin).
-2. Extract the zip file into your `<vault>/.obsidian/plugins/` folder.
+2. Extract the zip file `Source code` into your `<vault>/.obsidian/plugins/` folder.
 3. Enable the plugin in the settings.
 
 ### Api Key
