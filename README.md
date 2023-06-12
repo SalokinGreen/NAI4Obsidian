@@ -14,4 +14,8 @@ You can manually get your api key from [NovelAI](https://novelai.net/). You can 
 
 ### Sub
 
-You need a subscription to NovelAI to use this plugin. You can get one [here](https://novelai.net/). _I am not affiliated with NovelAI in any way, I just like their products. They're like fried eggs and swimming without socks. The best you can get._
+You need a subscription to NovelAI to use this plugin. You can get one [here](https://novelai.net/).
+
+# Disclaimer
+
+_I'm not affiliated with NovelAI in any way. I just like their products. They're like fried eggs and swimming without socks. The best you can get._
