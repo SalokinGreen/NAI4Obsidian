@@ -1,9 +1,7 @@
 import { requestUrl } from "obsidian";
 const { Encoder } = require("nai-js-tokenizer");
-
-const tokenizerData = require("../tokenizers/nerdstash_tokenizer.json");
-
-const encoder = new Encoder(
+let tokenizerData = require("../tokenizers/nerdstash_tokenizer.json");
+let encoder = new Encoder(
 	tokenizerData.vocab,
 	tokenizerData.merges,
 	tokenizerData.specialTokens,
@@ -16,6 +14,23 @@ export default async function generate(
 	model: string,
 	prefix: string
 ) {
+	if (model === "krake-v2") {
+		tokenizerData = require("../tokenizers/pile_tokenizer.json");
+		encoder = new Encoder(
+			tokenizerData.vocab,
+			tokenizerData.merges,
+			tokenizerData.specialTokens,
+			tokenizerData.config
+		);
+	} else if (model === "euterpe-v2") {
+		tokenizerData = require("../tokenizers/gpt2_tokenizer.json");
+		encoder = new Encoder(
+			tokenizerData.vocab,
+			tokenizerData.merges,
+			tokenizerData.specialTokens,
+			tokenizerData.config
+		);
+	}
 	const binaryArray = to16BitLittleEndianBinaryArray(context);
 	const binaryString = binaryArray.join("");
 	const uint8Array = binaryStringToUint8Array(binaryString);
