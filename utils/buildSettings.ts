@@ -53,6 +53,7 @@ const defaults: Defaults = {
 			[3695],
 			[16967],
 			[8353],
+			[24],
 		],
 		bias: null,
 	},
