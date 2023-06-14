@@ -103,6 +103,13 @@ export default function ContextBuilder(
 }
 function cleanMarkdown(text: string) {
 	console.log("Before: " + text);
+	while (text.includes("\n\n")) {
+		text = text.replace("\n\n", "\n");
+	}
+	while (text.includes("  ")) {
+		text = text.replace("  ", " ");
+	}
+	text = text.trim();
 	// remove markdown
 
 	console.log("After: " + text);

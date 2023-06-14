@@ -5,6 +5,5 @@
 	"minAppVersion": "0.15.0",
 	"description": "This is a plugin using novelai to generate text inside your Obsidian Vault.",
 	"author": "SGreen",
-
 	"isDesktopOnly": false
 }
