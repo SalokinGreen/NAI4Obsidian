@@ -103,6 +103,10 @@ export default function ContextBuilder(
 }
 function cleanMarkdown(text: string) {
 	console.log("Before: " + text);
+	let lastNewLine = false;
+	// check if there is a new line at the end of the text
+	text[text.length - 1] === "\n" ? (lastNewLine = true) : null;
+
 	while (text.includes("\n\n")) {
 		text = text.replace("\n\n", "\n");
 	}
@@ -110,8 +114,11 @@ function cleanMarkdown(text: string) {
 		text = text.replace("  ", " ");
 	}
 	text = text.trim();
+
 	// remove markdown
 
+	// add last newline
+	lastNewLine ? (text += "\n") : null;
 	console.log("After: " + text);
 	return text;
 }

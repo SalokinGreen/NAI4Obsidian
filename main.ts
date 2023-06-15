@@ -166,19 +166,7 @@ export default class NAI4Obsidian extends Plugin {
 				await this.saveSettings();
 			},
 		});
-		this.addCommand({
-			id: "buildSettings",
-			name: "Build Settings",
-			callback: async () => {
-				const settings = await buildSettings(
-					{
-						...this.settings,
-					},
-					this.settings.defaultSettings
-				);
-				console.log(settings);
-			},
-		});
+
 		this.addCommand({
 			id: "generate",
 			name: "Generate",
@@ -248,7 +236,75 @@ export default class NAI4Obsidian extends Plugin {
 				await this.saveSettings();
 			},
 		});
+		this.addCommand({
+			id: "retryNAI",
+			name: "Retry",
+			callback: async () => {
+				if (this.settings.generating) {
+					new Notice("Already generating!");
+					return;
+				} else {
+					new Notice("Generating...");
 
+					this.settings.generating = true;
+					await this.saveSettings();
+				}
+				const markdownView =
+					this.app.workspace.getActiveViewOfType(MarkdownView);
+				if (markdownView) {
+					const codeMirror = markdownView.editor;
+					codeMirror.undo();
+					const file = markdownView.file;
+					// Proceed with the next steps
+					const cursorPosition = codeMirror.getCursor();
+					const textBeforeCursor = codeMirror.getRange(
+						{ line: 0, ch: 0 },
+						cursorPosition
+					);
+					console.log(textBeforeCursor);
+					const context = ContextBuilder(
+						textBeforeCursor,
+						{
+							...this.settings,
+							title: markdownView.file?.basename,
+						},
+						this.settings.memory,
+						this.settings.prefix,
+						this.settings.model,
+						this.settings.sub,
+						Number(this.settings.tokens),
+						this.settings.generate_until_sentence
+					);
+					const settings = await buildSettings(
+						{
+							...this.settings,
+						},
+						this.settings.defaultSettings
+					);
+					try {
+						const generated = await generate(
+							context,
+							settings,
+							this.settings.apiKey,
+							this.settings.model,
+							this.settings.prefix
+						);
+						console.log(generated);
+						codeMirror.replaceRange(
+							generated,
+							cursorPosition,
+							cursorPosition
+						);
+					} catch (e) {
+						console.error(e);
+					}
+				} else {
+					new Notice("No active Markdown file.");
+				}
+				this.settings.generating = false;
+				await this.saveSettings();
+			},
+		});
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 		const statusBarItemEl = this.addStatusBarItem();
 		statusBarItemEl.setText("Status Bar Text");
