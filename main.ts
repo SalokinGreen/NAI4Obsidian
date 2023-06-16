@@ -72,16 +72,23 @@ const DefaultSettings: Settings = {
 
 export default class NAI4Obsidian extends Plugin {
 	settings: Settings;
-
+	generating: boolean = false;
 	async onload() {
 		await this.loadSettings();
-		let generating = false;
+
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon(
 			"pencil",
 			"NAI4Obsidian",
 			async (evt: MouseEvent) => {
-				await generateMarkdown.call(this, generating);
+				if (this.generating) {
+					new Notice("Already generating!");
+					return;
+				}
+				this.generating = true;
+				await generateMarkdown.call(this, this.generating).then(() => {
+					this.generating = false;
+				});
 			}
 		);
 		ribbonIconEl.addClass("my-plugin-ribbon-class");
@@ -105,20 +112,27 @@ export default class NAI4Obsidian extends Plugin {
 			id: "generate",
 			name: "Generate",
 			callback: async () => {
-				await generateMarkdown.call(this, generating);
+				if (this.generating) {
+					new Notice("Already generating!");
+					return;
+				}
+				this.generating = true;
+				await generateMarkdown.call(this, this.generating).then(() => {
+					this.generating = false;
+				});
 			},
 		});
 		this.addCommand({
 			id: "retryNAI",
 			name: "Retry",
 			callback: async () => {
-				if (generating) {
+				if (this.generating) {
 					new Notice("Already generating!");
 					return;
 				} else {
 					new Notice("Generating...");
 
-					generating = true;
+					this.generating = true;
 					await this.saveSettings();
 				}
 				const markdownView =
@@ -165,13 +179,26 @@ export default class NAI4Obsidian extends Plugin {
 							cursorPosition,
 							cursorPosition
 						);
+						// get length of generated text
+						const generatedTextLength = generated.length;
+						// get lines of generated text
+						const generatedTextLines = generated.split("\n").length;
+						// move cursos to the end of the generated text
+						codeMirror.setCursor({
+							line: cursorPosition.line + generatedTextLines,
+							ch: generatedTextLength,
+						});
 					} catch (e) {
 						console.error(e);
 					}
+					codeMirror.setCursor({
+						line: cursorPosition.line + 1,
+						ch: 0,
+					});
 				} else {
 					new Notice("No active Markdown file.");
 				}
-				generating = false;
+				this.generating = false;
 				await this.saveSettings();
 			},
 		});
@@ -540,14 +567,9 @@ async function setFilePermissions(file: TFile, readOnly: boolean) {
 	await vault.create(file.path, fileContent, { readOnly });
 }
 async function generateMarkdown(this: NAI4Obsidian, generating: boolean) {
-	if (generating) {
-		new Notice("Already generating!");
-		return;
-	} else {
-		new Notice("Generating...");
-		generating = true;
-		await this.saveSettings();
-	}
+	new Notice("Generating...");
+	await this.saveSettings();
+
 	const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
 	if (markdownView) {
 		const codeMirror = markdownView.editor;
@@ -587,13 +609,19 @@ async function generateMarkdown(this: NAI4Obsidian, generating: boolean) {
 				this.settings.prefix
 			);
 			codeMirror.replaceRange(generated, cursorPosition, cursorPosition);
+			// get length of generated text
+			const generatedTextLength = generated.length;
+			// get lines of generated text
+			const generatedTextLines = generated.split("\n").length;
+			// move cursos to the end of the generated text
+			codeMirror.setCursor({
+				line: cursorPosition.line + generatedTextLines,
+				ch: generatedTextLength,
+			});
 		} catch (e) {
 			console.error(e);
 		}
 	} else {
 		new Notice("No active Markdown file.");
 	}
-
-	generating = false;
-	await this.saveSettings();
 }
