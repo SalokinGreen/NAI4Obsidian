@@ -3,7 +3,7 @@
 	"name": "NAI 4 Obsidian",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "This is a plugin using novelai to generate text inside your Obsidian Vault.",
+	"description": "Generate text with NovelAI's models.",
 	"author": "SGreen",
 	"isDesktopOnly": false
 }

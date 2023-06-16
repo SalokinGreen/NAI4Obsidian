@@ -40,26 +40,17 @@ export default async function getKey(email, password) {
 	}
 
 	const data = await login(email, password);
-	console.log("Email: " + email, "\nPassword: " + password, "\nKey: " + data);
 	const json = JSON.stringify({ key: data });
 	const headers = {
 		"Content-Type": "application/json",
 	};
-	// const key = await axios
-	// 	.post("http://localhost:3000/proxy", {
-	// 		key: data,
-	// 	})
-	// 	.catch((err) => {
-	// 		console.log(err);
-	// 		wrongCredentials = true;
-	// 	});
+
 	const key = await requestUrl({
 		url: "https://api.novelai.net/user/login",
 		method: "POST",
 		body: json,
 		headers: headers,
 	});
-	console.log(key.json);
 
 	if (wrongCredentials) {
 		return false;

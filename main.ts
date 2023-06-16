@@ -10,7 +10,6 @@ import {
 	TFile,
 } from "obsidian";
 
-// Remember to rename these classes and interfaces!
 import getKey from "utils/getNaiKey";
 import buildSettings from "utils/buildSettings";
 import ContextBuilder from "utils/contextbuilder";
@@ -40,11 +39,10 @@ interface Settings {
 	author: string;
 	genre: string;
 	memory: string;
-	generating: boolean;
 	defaultSettings: boolean;
 }
 
-const DEFAULT_SETTINGS: Settings = {
+const DefaultSettings: Settings = {
 	email: "",
 	password: "",
 	apiKey: "",
@@ -69,7 +67,6 @@ const DEFAULT_SETTINGS: Settings = {
 	repetition_penalty_frequency: "0",
 	repetition_penalty_presence: "0",
 	order: "1, 0, 4",
-	generating: false,
 	defaultSettings: true,
 };
 
@@ -78,84 +75,21 @@ export default class NAI4Obsidian extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-
+		let generating = false;
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon(
 			"pencil",
 			"NAI4Obsidian",
 			async (evt: MouseEvent) => {
-				if (this.settings.generating) {
-					new Notice("Already generating!");
-					return;
-				} else {
-					new Notice("Generating...");
-					this.settings.generating = true;
-					await this.saveSettings();
-				}
-				const markdownView =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					const codeMirror = markdownView.editor;
-					const file = markdownView.file;
-
-					// Proceed with the next steps
-					const cursorPosition = codeMirror.getCursor();
-					const textBeforeCursor = codeMirror.getRange(
-						{ line: 0, ch: 0 },
-						cursorPosition
-					);
-					console.log(textBeforeCursor);
-					const context = ContextBuilder(
-						textBeforeCursor,
-						{
-							...this.settings,
-							title: markdownView.file?.basename,
-						},
-						this.settings.memory,
-						this.settings.prefix,
-						this.settings.model,
-						this.settings.sub,
-						Number(this.settings.tokens),
-						this.settings.generate_until_sentence
-					);
-					const settings = await buildSettings(
-						{
-							...this.settings,
-						},
-						this.settings.defaultSettings
-					);
-					try {
-						const generated = await generate(
-							context,
-							settings,
-							this.settings.apiKey,
-							this.settings.model,
-							this.settings.prefix
-						);
-						console.log(generated);
-						codeMirror.replaceRange(
-							generated,
-							cursorPosition,
-							cursorPosition
-						);
-					} catch (e) {
-						console.error(e);
-					}
-				} else {
-					new Notice("No active Markdown file.");
-				}
-
-				this.settings.generating = false;
-				await this.saveSettings();
+				await generateMarkdown.call(this, generating);
 			}
 		);
-		// Perform additional things with the ribbon
 		ribbonIconEl.addClass("my-plugin-ribbon-class");
 
 		// add commands
 		this.addCommand({
 			id: "getKey",
-			name: "Get Key",
+			name: "Get key",
 			callback: async () => {
 				const key = await getKey(
 					this.settings.email,
@@ -171,82 +105,20 @@ export default class NAI4Obsidian extends Plugin {
 			id: "generate",
 			name: "Generate",
 			callback: async () => {
-				if (this.settings.generating) {
-					new Notice("Already generating!");
-					return;
-				} else {
-					new Notice("Generating...");
-
-					this.settings.generating = true;
-					await this.saveSettings();
-				}
-				const markdownView =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					const codeMirror = markdownView.editor;
-					const file = markdownView.file;
-
-					// Proceed with the next steps
-					const cursorPosition = codeMirror.getCursor();
-					const textBeforeCursor = codeMirror.getRange(
-						{ line: 0, ch: 0 },
-						cursorPosition
-					);
-					console.log(textBeforeCursor);
-					const context = ContextBuilder(
-						textBeforeCursor,
-						{
-							...this.settings,
-							title: markdownView.file?.basename,
-						},
-						this.settings.memory,
-						this.settings.prefix,
-						this.settings.model,
-						this.settings.sub,
-						Number(this.settings.tokens),
-						this.settings.generate_until_sentence
-					);
-					const settings = await buildSettings(
-						{
-							...this.settings,
-						},
-						this.settings.defaultSettings
-					);
-					try {
-						const generated = await generate(
-							context,
-							settings,
-							this.settings.apiKey,
-							this.settings.model,
-							this.settings.prefix
-						);
-						console.log(generated);
-						codeMirror.replaceRange(
-							generated,
-							cursorPosition,
-							cursorPosition
-						);
-					} catch (e) {
-						console.error(e);
-					}
-				} else {
-					new Notice("No active Markdown file.");
-				}
-				this.settings.generating = false;
-				await this.saveSettings();
+				await generateMarkdown.call(this, generating);
 			},
 		});
 		this.addCommand({
 			id: "retryNAI",
 			name: "Retry",
 			callback: async () => {
-				if (this.settings.generating) {
+				if (generating) {
 					new Notice("Already generating!");
 					return;
 				} else {
 					new Notice("Generating...");
 
-					this.settings.generating = true;
+					generating = true;
 					await this.saveSettings();
 				}
 				const markdownView =
@@ -261,7 +133,6 @@ export default class NAI4Obsidian extends Plugin {
 						{ line: 0, ch: 0 },
 						cursorPosition
 					);
-					console.log(textBeforeCursor);
 					const context = ContextBuilder(
 						textBeforeCursor,
 						{
@@ -289,7 +160,6 @@ export default class NAI4Obsidian extends Plugin {
 							this.settings.model,
 							this.settings.prefix
 						);
-						console.log(generated);
 						codeMirror.replaceRange(
 							generated,
 							cursorPosition,
@@ -301,27 +171,12 @@ export default class NAI4Obsidian extends Plugin {
 				} else {
 					new Notice("No active Markdown file.");
 				}
-				this.settings.generating = false;
+				generating = false;
 				await this.saveSettings();
 			},
 		});
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText("Status Bar Text");
-
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, "click", (evt: MouseEvent) => {
-			console.log("click", evt);
-		});
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(
-			window.setInterval(() => console.log("setInterval"), 5 * 60 * 1000)
-		);
+		this.addSettingTab(new NAI4ObsidianSettings(this.app, this));
 	}
 
 	onunload() {}
@@ -329,7 +184,7 @@ export default class NAI4Obsidian extends Plugin {
 	async loadSettings() {
 		this.settings = Object.assign(
 			{},
-			DEFAULT_SETTINGS,
+			DefaultSettings,
 			await this.loadData()
 		);
 	}
@@ -339,23 +194,7 @@ export default class NAI4Obsidian extends Plugin {
 	}
 }
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
-
-	onOpen() {
-		const { contentEl } = this;
-		contentEl.setText("Woah!");
-	}
-
-	onClose() {
-		const { contentEl } = this;
-		contentEl.empty();
-	}
-}
-
-class SampleSettingTab extends PluginSettingTab {
+class NAI4ObsidianSettings extends PluginSettingTab {
 	plugin: NAI4Obsidian;
 
 	constructor(app: App, plugin: NAI4Obsidian) {
@@ -368,7 +207,6 @@ class SampleSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl("h2", { text: "Settings." });
 		new Setting(containerEl)
 			.setName("Email")
 			.setDesc("Your NovelAI email")
@@ -692,20 +530,6 @@ class SampleSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
-
-		new Setting(containerEl)
-			.setName("Genrating")
-			.setDesc(
-				"Used to check if the plugin is generating. Do not change unless there was a bug keeping it on."
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.generating)
-					.onChange(async (value) => {
-						this.plugin.settings.generating = value;
-						await this.plugin.saveSettings();
-					})
-			);
 	}
 }
 // Function to stop from editing while generating
@@ -714,4 +538,62 @@ async function setFilePermissions(file: TFile, readOnly: boolean) {
 	const fileContent = await vault.read(file);
 	await vault.delete(file.path);
 	await vault.create(file.path, fileContent, { readOnly });
+}
+async function generateMarkdown(this: NAI4Obsidian, generating: boolean) {
+	if (generating) {
+		new Notice("Already generating!");
+		return;
+	} else {
+		new Notice("Generating...");
+		generating = true;
+		await this.saveSettings();
+	}
+	const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+	if (markdownView) {
+		const codeMirror = markdownView.editor;
+		const file = markdownView.file;
+
+		// Proceed with the next steps
+		const cursorPosition = codeMirror.getCursor();
+		const textBeforeCursor = codeMirror.getRange(
+			{ line: 0, ch: 0 },
+			cursorPosition
+		);
+		const context = ContextBuilder(
+			textBeforeCursor,
+			{
+				...this.settings,
+				title: markdownView.file?.basename,
+			},
+			this.settings.memory,
+			this.settings.prefix,
+			this.settings.model,
+			this.settings.sub,
+			Number(this.settings.tokens),
+			this.settings.generate_until_sentence
+		);
+		const settings = await buildSettings(
+			{
+				...this.settings,
+			},
+			this.settings.defaultSettings
+		);
+		try {
+			const generated = await generate(
+				context,
+				settings,
+				this.settings.apiKey,
+				this.settings.model,
+				this.settings.prefix
+			);
+			codeMirror.replaceRange(generated, cursorPosition, cursorPosition);
+		} catch (e) {
+			console.error(e);
+		}
+	} else {
+		new Notice("No active Markdown file.");
+	}
+
+	generating = false;
+	await this.saveSettings();
 }

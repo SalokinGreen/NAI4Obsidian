@@ -1,5 +1,6 @@
-const { Encoder } = require("nai-js-tokenizer");
+import { Encoder } from "nai-js-tokenizer";
 let tokenizerData = require("../tokenizers/nerdstash_tokenizer.json");
+
 interface Tks {
 	[key: string]: {
 		[key: string]: number;
@@ -113,7 +114,13 @@ function cleanMarkdown(text: string) {
 	while (text.includes("  ")) {
 		text = text.replace("  ", " ");
 	}
+	text.replace("\n ", "\n");
+	text.replace(" \n", "\n");
 	text = text.trim();
+
+	// remove references and images: ![[]] and [[]]
+	text = text.replace(/\[\[.*?\]\]/g, "");
+	text = text.replace(/\!\[\[.*?\]\]/g, "");
 
 	// remove markdown
 

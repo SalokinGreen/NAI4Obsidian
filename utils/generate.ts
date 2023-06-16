@@ -1,5 +1,5 @@
 import { requestUrl } from "obsidian";
-const { Encoder } = require("nai-js-tokenizer");
+import { Encoder } from "nai-js-tokenizer";
 let tokenizerData = require("../tokenizers/nerdstash_tokenizer.json");
 let encoder = new Encoder(
 	tokenizerData.vocab,
