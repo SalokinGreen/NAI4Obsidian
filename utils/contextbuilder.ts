@@ -118,10 +118,11 @@ function cleanMarkdown(text: string) {
 	text.replace(" \n", "\n");
 	text = text.trim();
 
-	// remove references and images: ![[]] and [[]]
-	text = text.replace(/\[\[.*?\]\]/g, "");
+	// remove references and images: ![[]]
 	text = text.replace(/\!\[\[.*?\]\]/g, "");
-
+	// get rid of [[]]
+	text = text.replace("[[", "");
+	text = text.replace("]]", "");
 	// remove markdown
 
 	// add last newline

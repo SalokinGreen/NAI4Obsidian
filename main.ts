@@ -85,7 +85,9 @@ export default class NAI4Obsidian extends Plugin {
 					new Notice("Already generating!");
 					return;
 				}
+
 				this.generating = true;
+
 				await generateMarkdown.call(this, this.generating).then(() => {
 					this.generating = false;
 				});
