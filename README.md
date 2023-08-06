@@ -12,6 +12,8 @@ Wouldn't you like little fren who writes with you? A brother in arms? A companio
 
 You can manually get your api key from [NovelAI](https://novelai.net/). You can also use the `get Key` command that uses your email and password to generate your api key.
 
+### Generating
+
 ### Sub
 
 You need a subscription to NovelAI to use this plugin. You can get one [here](https://novelai.net/).

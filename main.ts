@@ -34,12 +34,15 @@ interface Settings {
 	repetition_penalty_slope: string;
 	repetition_penalty_frequency: string;
 	repetition_penalty_presence: string;
+	cfg: string;
 	order: string;
 	tags: string;
 	author: string;
 	genre: string;
 	memory: string;
 	defaultSettings: boolean;
+	white_list: boolean;
+	phrase_repetition_penalty: string;
 }
 
 const DefaultSettings: Settings = {
@@ -66,6 +69,9 @@ const DefaultSettings: Settings = {
 	repetition_penalty_slope: "0.09",
 	repetition_penalty_frequency: "0",
 	repetition_penalty_presence: "0",
+	cfg: "1",
+	white_list: true,
+	phrase_repetition_penalty: "Off",
 	order: "1, 0, 4",
 	defaultSettings: true,
 };
@@ -293,8 +299,7 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 			.addDropdown((dropdown) =>
 				dropdown
 					.addOption("clio-v1", "clio-v1")
-					.addOption("krake-v2", "krake-v2")
-					.addOption("euterpe-v2", "euterpe-v2")
+					.addOption("kayra-v1", "kayra-v1")
 					.setValue(this.plugin.settings.model)
 					.onChange(async (value) => {
 						this.plugin.settings.model = value;
@@ -548,6 +553,46 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+		new Setting(containerEl)
+			.setName("CFG")
+			.setDesc("CFG")
+			.addText((text) =>
+				text
+					.setPlaceholder("CFG")
+					.setValue(this.plugin.settings.cfg.toString())
+					.onChange(async (value) => {
+						this.plugin.settings.cfg = value.toString();
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
+			.setName("White List")
+			.setDesc("White List")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.white_list)
+					.onChange(async (value) => {
+						this.plugin.settings.white_list = value;
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
+			.setName("Phrase Repetition Penalty")
+			.setDesc("Phrase Repetition Penalty")
+			.addDropdown((dropdown) => {
+				dropdown
+					.addOption("Off", "Off")
+					.addOption("Very Light", "Very Light")
+					.addOption("Light", "Light")
+					.addOption("Medium", "Medium")
+					.addOption("Agressive", "Aggressive")
+					.addOption("Very Agressive", "Very Agressive")
+					.setValue(this.plugin.settings.phrase_repetition_penalty)
+					.onChange(async (value) => {
+						this.plugin.settings.phrase_repetition_penalty = value;
+						await this.plugin.saveSettings();
+					});
+			});
 		new Setting(containerEl)
 			.setName("Default Settings")
 			.setDesc("Include the default bans and biases?")

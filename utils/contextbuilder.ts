@@ -1,27 +1,15 @@
 import { Encoder } from "nai-js-tokenizer";
-let tokenizerData = require("../tokenizers/nerdstash_tokenizer.json");
+let tokenizerData = require("../tokenizers/nerdstash_tokenizer_v2.json");
 
 interface Tks {
-	[key: string]: {
-		[key: string]: number;
-	};
+	[key: string]: number;
 }
 const tks: Tks = {
-	opus: {
-		"clio-v1": 8192,
-		"krake-v2": 2048,
-		"euterpe-v2": 2048,
-	},
-	scroll: {
-		"clio-v1": 6144,
-		"krake-v2": 0,
-		"euterpe-v2": 2048,
-	},
-	tablet: {
-		"clio-v1": 3072,
-		"krake-v2": 0,
-		"euterpe-v2": 1024,
-	},
+	opus: 8192,
+
+	scroll: 6144,
+
+	tablet: 3072,
 };
 let encoder = new Encoder(
 	tokenizerData.vocab,
@@ -46,16 +34,8 @@ export default function ContextBuilder(
 	tokens: number,
 	generate_until_sentence: boolean
 ) {
-	if (model === "krake-v2") {
-		tokenizerData = require("../tokenizers/pile_tokenizer.json");
-		encoder = new Encoder(
-			tokenizerData.vocab,
-			tokenizerData.merges,
-			tokenizerData.specialTokens,
-			tokenizerData.config
-		);
-	} else if (model === "euterpe-v2") {
-		tokenizerData = require("../tokenizers/gpt2_tokenizer.json");
+	if (model === "clio-v1") {
+		tokenizerData = require("../tokenizers/nerdstash_tokenizer.json");
 		encoder = new Encoder(
 			tokenizerData.vocab,
 			tokenizerData.merges,
@@ -86,7 +66,7 @@ export default function ContextBuilder(
 
 	const attgTokens = encoder.encode(attgString);
 	const attgTokensLength = attgTokens.length;
-	const defaultTokens: number = tks[sub][model];
+	const defaultTokens: number = tks[sub];
 	let maxSize =
 		defaultTokens -
 		tokens -

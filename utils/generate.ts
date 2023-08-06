@@ -1,6 +1,6 @@
 import { requestUrl } from "obsidian";
 import { Encoder } from "nai-js-tokenizer";
-let tokenizerData = require("../tokenizers/nerdstash_tokenizer.json");
+let tokenizerData = require("../tokenizers/nerdstash_tokenizer_v2.json");
 let encoder = new Encoder(
 	tokenizerData.vocab,
 	tokenizerData.merges,
@@ -14,16 +14,8 @@ export default async function generate(
 	model: string,
 	prefix: string
 ) {
-	if (model === "krake-v2") {
-		tokenizerData = require("../tokenizers/pile_tokenizer.json");
-		encoder = new Encoder(
-			tokenizerData.vocab,
-			tokenizerData.merges,
-			tokenizerData.specialTokens,
-			tokenizerData.config
-		);
-	} else if (model === "euterpe-v2") {
-		tokenizerData = require("../tokenizers/gpt2_tokenizer.json");
+	if (model === "clio-v1") {
+		tokenizerData = require("../tokenizers/nerdstash_tokenizer.json");
 		encoder = new Encoder(
 			tokenizerData.vocab,
 			tokenizerData.merges,
