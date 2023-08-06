@@ -98,7 +98,11 @@ const defaults: Defaults = {
 		],
 	},
 };
-export default function buildSettings(pkg: Package, def: boolean) {
+export default function buildSettings(
+	pkg: Package,
+	def: boolean,
+	inst: boolean
+) {
 	let settings = {};
 	// get settings from package
 	let tokens = Number(pkg.tokens);

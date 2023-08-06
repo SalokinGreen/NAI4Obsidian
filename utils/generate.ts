@@ -12,7 +12,8 @@ export default async function generate(
 	settings: any,
 	key: string,
 	model: string,
-	prefix: string
+	prefix: string,
+	inst: boolean
 ) {
 	if (model === "clio-v1") {
 		tokenizerData = require("../tokenizers/nerdstash_tokenizer.json");
@@ -27,11 +28,15 @@ export default async function generate(
 	const binaryString = binaryArray.join("");
 	const uint8Array = binaryStringToUint8Array(binaryString);
 	const base64String = uint8ArrayToBase64(uint8Array);
+	let newPrefix = prefix;
+	if (inst) {
+		newPrefix = "special_instruct";
+	}
 	const body = {
 		input: base64String,
 		parameters: {
 			...settings,
-			prefix: prefix === "" ? "vanilla" : prefix,
+			prefix: newPrefix === "" ? "vanilla" : newPrefix,
 			min_length: 1,
 		},
 		model: model,

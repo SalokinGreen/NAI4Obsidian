@@ -168,6 +168,11 @@ export default class NAI4Obsidian extends Plugin {
 						Number(this.settings.tokens),
 						this.settings.generate_until_sentence
 					);
+					// check if "{" is in the text, 1000 characters before the cursor
+					let instruct = false;
+					if (textBeforeCursor.slice(-1000).includes("{")) {
+						instruct = true;
+					}
 					const settings = await buildSettings(
 						{
 							...this.settings,
@@ -180,7 +185,8 @@ export default class NAI4Obsidian extends Plugin {
 							settings,
 							this.settings.apiKey,
 							this.settings.model,
-							this.settings.prefix
+							this.settings.prefix,
+							instruct
 						);
 						codeMirror.replaceRange(
 							generated,
@@ -641,6 +647,11 @@ async function generateMarkdown(this: NAI4Obsidian, generating: boolean) {
 			Number(this.settings.tokens),
 			this.settings.generate_until_sentence
 		);
+		// check if "{" is in the text, 1000 characters before the cursor
+		let instruct = false;
+		if (textBeforeCursor.slice(-1000).includes("{")) {
+			instruct = true;
+		}
 		const settings = await buildSettings(
 			{
 				...this.settings,
@@ -653,7 +664,8 @@ async function generateMarkdown(this: NAI4Obsidian, generating: boolean) {
 				settings,
 				this.settings.apiKey,
 				this.settings.model,
-				this.settings.prefix
+				this.settings.prefix,
+				instruct
 			);
 			codeMirror.replaceRange(generated, cursorPosition, cursorPosition);
 			// get length of generated text

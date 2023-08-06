@@ -84,6 +84,9 @@ export default function ContextBuilder(
 }
 function cleanMarkdown(text: string) {
 	console.log("Before: " + text);
+	// remove '#tags'
+	text = text.replace(/#[a-zA-Z0-9]+/g, "");
+
 	let lastNewLine = false;
 	// check if there is a new line at the end of the text
 	text[text.length - 1] === "\n" ? (lastNewLine = true) : null;
@@ -103,6 +106,7 @@ function cleanMarkdown(text: string) {
 	// get rid of [[]]
 	text = text.replace("[[", "");
 	text = text.replace("]]", "");
+
 	// remove markdown
 
 	// add last newline
