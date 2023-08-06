@@ -12,7 +12,13 @@ Wouldn't you like little fren who writes with you? A brother in arms? A companio
 
 You can manually get your api key from [NovelAI](https://novelai.net/). You can also use the `get Key` command that uses your email and password to generate your api key.
 
+#### Update
+
+NAI recently introduced the update 'Persistent API Token Access' which gives you an api key that's a permanent solution, at least until you generate a new one.
+
 ### Generating
+
+There are two commands, "generate" and "retry". Generate will generate a new prompt and retry will retry the last prompt. You have to asign a hotkey to these commands in the settings.
 
 ### Sub
 

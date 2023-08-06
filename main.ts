@@ -43,6 +43,7 @@ interface Settings {
 	defaultSettings: boolean;
 	white_list: boolean;
 	phrase_repetition_penalty: string;
+	instruct_range: string;
 }
 
 const DefaultSettings: Settings = {
@@ -74,6 +75,7 @@ const DefaultSettings: Settings = {
 	phrase_repetition_penalty: "Off",
 	order: "1, 0, 4",
 	defaultSettings: true,
+	instruct_range: "1000",
 };
 
 export default class NAI4Obsidian extends Plugin {
@@ -170,7 +172,9 @@ export default class NAI4Obsidian extends Plugin {
 					);
 					// check if "{" is in the text, 1000 characters before the cursor
 					let instruct = false;
-					if (textBeforeCursor.slice(-1000).includes("{")) {
+					let instructRange = Number(this.settings.instruct_range);
+					instructRange = instructRange * -1;
+					if (textBeforeCursor.slice(instructRange).includes("{")) {
 						instruct = true;
 					}
 					const settings = await buildSettings(
@@ -610,6 +614,18 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+		new Setting(containerEl)
+			.setName("Instruct Range")
+			.setDesc("How many characters to check for instructions")
+			.addText((text) =>
+				text
+					.setPlaceholder("Instruct Range")
+					.setValue(this.plugin.settings.instruct_range.toString())
+					.onChange(async (value) => {
+						this.plugin.settings.instruct_range = value.toString();
+						await this.plugin.saveSettings();
+					})
+			);
 	}
 }
 // Function to stop from editing while generating
@@ -649,7 +665,9 @@ async function generateMarkdown(this: NAI4Obsidian, generating: boolean) {
 		);
 		// check if "{" is in the text, 1000 characters before the cursor
 		let instruct = false;
-		if (textBeforeCursor.slice(-1000).includes("{")) {
+		let instructRange = Number(this.settings.instruct_range);
+		instructRange = instructRange * -1;
+		if (textBeforeCursor.slice(instructRange).includes("{")) {
 			instruct = true;
 		}
 		const settings = await buildSettings(
