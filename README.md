@@ -16,13 +16,23 @@ You can manually get your api key from [NovelAI](https://novelai.net/). You can 
 
 NAI recently introduced the update 'Persistent API Token Access' which gives you an api key that's a permanent solution, at least until you generate a new one.
 
-### Generating
-
-There are two commands, "generate" and "retry". Generate will generate a new prompt and retry will retry the last prompt. You have to asign a hotkey to these commands in the settings.
-
 ### Sub
 
 You need a subscription to NovelAI to use this plugin. You can get one [here](https://novelai.net/).
+
+### Features
+
+## Generating
+
+There are two commands, "generate" and "retry". Generate will generate a new prompt and retry will retry the last prompt. You have to asign a hotkey to these commands in the settings.
+
+## Settings
+
+Almost all settings that NovelAI offers are there. Only things missing, but planned, are biases, bans, EOS, and custom whitelist.
+
+## Lorebook
+
+There's a lorebook for you to use, like on NovelAI! _Just simpler._
 
 # Disclaimer
 
