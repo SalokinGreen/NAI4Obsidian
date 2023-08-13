@@ -1,8 +1,85 @@
-/*
+/* lorebook modal */
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+/* main area */
+.lorebook-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 1em;
+}
 
-If your plugin does not need CSS, delete this file.
+/* left side-munu. Displays article titles in a list */
+.lorebook-left-container {
+	width: 20%;
+	height: 100%;
+	overflow-y: scroll;
+	box-sizing: border-box;
+	overflow-x: hidden;
+	max-height: 20rem;
+}
+.lorebook-left-container > button {
+	/* width: 6rem; */
+	min-width: 100%;
+	overflow: hidden;
+}
+/* main view. Displays article and edits it */
+.lorebook-right-container {
+	width: 80%;
+	overflow-y: scroll;
+	box-sizing: border-box;
+}
+.lorebook-form {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: flex-start;
+	gap: 1em;
+}
+.lorebook-settings-area {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	align-items: flex-start;
+	gap: 1em;
+	width: 100%;
+}
+.lorebook-range-area {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+}
 
-*/
+.lorebook-priority-area {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+	width: 100%;
+}
+.lorebook-over-key-area {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	align-items: flex-start;
+	gap: 1em;
+	width: 100%;
+}
+.lorebook-always-on {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+	width: 100%;
+}
+.lorebook-content-area {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: flex-start;
+	width: 100%;
+}
+.lorebook-content-area > textarea {
+	width: 100%;
+	height: 100%;
+}

@@ -26,6 +26,9 @@ interface Package {
 	white_list: boolean;
 	cfg: string;
 	phrase_repetition_penalty: string;
+	mirostat_tau: string;
+	mirostat_lr: string;
+	top_g: string;
 }
 interface Defaults {
 	[key: string]: {
@@ -98,11 +101,7 @@ const defaults: Defaults = {
 		],
 	},
 };
-export default function buildSettings(
-	pkg: Package,
-	def: boolean,
-	inst: boolean
-) {
+export default function buildSettings(pkg: Package, def: boolean) {
 	let settings = {};
 	// get settings from package
 	let tokens = Number(pkg.tokens);
@@ -172,7 +171,13 @@ export default function buildSettings(
 	}
 
 	(settings as any)["phrase_repetition_penalty"] = phrase_rep_pen;
-
+	if (Number(pkg.mirostat_tau) > 0) {
+		(settings as any)["mirostat_tau"] = Number(pkg.mirostat_tau);
+		(settings as any)["mirostat_lr"] = Number(pkg.mirostat_lr);
+	}
+	if (Number(pkg.top_g) > 0) {
+		(settings as any)["top_g"] = Number(pkg.top_g);
+	}
 	// build settings
 	return settings;
 }

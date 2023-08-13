@@ -32,7 +32,8 @@ export default function ContextBuilder(
 	model: string,
 	sub: string,
 	tokens: number,
-	generate_until_sentence: boolean
+	generate_until_sentence: boolean,
+	lore: string[]
 ) {
 	if (model === "clio-v1") {
 		tokenizerData = require("../tokenizers/nerdstash_tokenizer.json");
@@ -67,23 +68,43 @@ export default function ContextBuilder(
 	const attgTokens = encoder.encode(attgString);
 	const attgTokensLength = attgTokens.length;
 	const defaultTokens: number = tks[sub];
+	let loreContext = "";
+	let loreSize = 0;
+	lore.forEach((l) => {
+		if (loreSize + encoder.encode(l + "\n").length < defaultTokens - 1000) {
+			loreContext += l + "\n";
+			loreSize += encoder.encode(l + "\n").length;
+		}
+	});
+	const loreTokens = encoder.encode(loreContext);
+
 	let maxSize =
 		defaultTokens -
 		tokens -
 		prefixTokens -
 		generatedTokens -
 		memoryLength -
-		attgTokensLength;
+		attgTokensLength -
+		loreTokens.length;
 
 	const encoded = encoder.encode(cleanMarkdown(text));
 	const reversedContext = encoded.reverse();
 	const turnedAroundContext = reversedContext.slice(0, maxSize);
 	const context = turnedAroundContext.reverse();
-	const finalConext = [...attgTokens, ...memoryTokens, ...context];
+	const finalConext = [
+		...attgTokens,
+		...memoryTokens,
+		...loreTokens,
+		...context,
+	];
 	return finalConext;
 }
 function cleanMarkdown(text: string) {
 	console.log("Before: " + text);
+	// remove '#tags-tags'
+	text = text.replace(/#[a-zA-Z0-9]+-[a-zA-Z0-9]+/g, "");
+	// remove '#tags_tags'
+	text = text.replace(/#[a-zA-Z0-9]+_[a-zA-Z0-9]+/g, "");
 	// remove '#tags'
 	text = text.replace(/#[a-zA-Z0-9]+/g, "");
 
@@ -91,6 +112,16 @@ function cleanMarkdown(text: string) {
 	// check if there is a new line at the end of the text
 	text[text.length - 1] === "\n" ? (lastNewLine = true) : null;
 
+	// remove references and images: ![[]]
+	text = text.replace(/\!\[\[.*?\]\]/g, "");
+	// get rid of [[]]
+	text = text.replace("[[", "");
+	text = text.replace("]]", "");
+
+	// remove markdown
+	// to be added
+
+	// remove newlines
 	while (text.includes("\n\n")) {
 		text = text.replace("\n\n", "\n");
 	}
@@ -100,15 +131,6 @@ function cleanMarkdown(text: string) {
 	text.replace("\n ", "\n");
 	text.replace(" \n", "\n");
 	text = text.trim();
-
-	// remove references and images: ![[]]
-	text = text.replace(/\!\[\[.*?\]\]/g, "");
-	// get rid of [[]]
-	text = text.replace("[[", "");
-	text = text.replace("]]", "");
-
-	// remove markdown
-
 	// add last newline
 	lastNewLine ? (text += "\n") : null;
 	console.log("After: " + text);

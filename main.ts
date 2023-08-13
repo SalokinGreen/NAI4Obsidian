@@ -9,6 +9,9 @@ import {
 	Setting,
 	TFile,
 } from "obsidian";
+import { LorebookModal } from "lorebook";
+import { Entry } from "lorebook";
+import createLore from "utils/createLore";
 
 import getKey from "utils/getNaiKey";
 import buildSettings from "utils/buildSettings";
@@ -44,6 +47,10 @@ interface Settings {
 	white_list: boolean;
 	phrase_repetition_penalty: string;
 	instruct_range: string;
+	lore: Entry[];
+	mirostat_tau: string;
+	mirostat_lr: string;
+	top_g: string;
 }
 
 const DefaultSettings: Settings = {
@@ -76,14 +83,22 @@ const DefaultSettings: Settings = {
 	order: "1, 0, 4",
 	defaultSettings: true,
 	instruct_range: "1000",
+	lore: [],
+	mirostat_tau: "0",
+	mirostat_lr: "0",
+	top_g: "0",
 };
 
 export default class NAI4Obsidian extends Plugin {
 	settings: Settings;
 	generating: boolean = false;
+	lore: Entry[]; // lorebook entries
 	async onload() {
 		await this.loadSettings();
-
+		this.lore = await this.loadData();
+		if (!this.lore) {
+			this.lore = [];
+		}
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon(
 			"pencil",
@@ -157,6 +172,8 @@ export default class NAI4Obsidian extends Plugin {
 						{ line: 0, ch: 0 },
 						cursorPosition
 					);
+					const lorebook = createLore(this.lore, textBeforeCursor);
+
 					const context = ContextBuilder(
 						textBeforeCursor,
 						{
@@ -168,7 +185,8 @@ export default class NAI4Obsidian extends Plugin {
 						this.settings.model,
 						this.settings.sub,
 						Number(this.settings.tokens),
-						this.settings.generate_until_sentence
+						this.settings.generate_until_sentence,
+						lorebook
 					);
 					// check if "{" is in the text, 1000 characters before the cursor
 					let instruct = false;
@@ -220,11 +238,45 @@ export default class NAI4Obsidian extends Plugin {
 				await this.saveSettings();
 			},
 		});
+		this.addCommand({
+			id: "load-preset",
+			name: "Load preset",
+			callback: async () => {
+				// get the text from the open file
+				const markdownView =
+					this.app.workspace.getActiveViewOfType(MarkdownView);
+				if (
+					markdownView &&
+					markdownView.file?.basename.endsWith(".preset")
+				) {
+					// turn the text into a JSON object
+					const codeMirror = markdownView.editor;
+					const text = codeMirror.getValue();
+					const json = JSON.parse(text);
+					// set the settings to the JSON object
+					this.settings = json;
+					// setOrder
+				}
+			},
+		});
+		this.addCommand({
+			id: "open-lorebook",
+			name: "Open Lorebook",
+			callback: () => {
+				this.lore = this.settings.lore;
+				let modal = new LorebookModal(
+					this.app,
+					this.lore,
+					this.saveSettings.bind(this)
+				);
+				modal.open();
+			},
+		});
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new NAI4ObsidianSettings(this.app, this));
 	}
 
-	onunload() {}
+	async onunload() {}
 
 	async loadSettings() {
 		this.settings = Object.assign(
@@ -504,6 +556,43 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 					})
 			);
 		new Setting(containerEl)
+			.setName("Mirostat Tau")
+			.setDesc("Mirostat Tau")
+			.addText((text) =>
+				text
+					.setPlaceholder("Mirostat Tau")
+					.setValue(this.plugin.settings.mirostat_tau.toString())
+					.onChange(async (value) => {
+						this.plugin.settings.mirostat_tau = value.toString();
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Mirostat LR")
+			.setDesc("Mirostat LR")
+			.addText((text) =>
+				text
+					.setPlaceholder("Mirostat LR")
+					.setValue(this.plugin.settings.mirostat_lr.toString())
+					.onChange(async (value) => {
+						this.plugin.settings.mirostat_lr = value.toString();
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
+			.setName("Top G")
+			.setDesc("Top G")
+			.addText((text) =>
+				text
+					.setPlaceholder("Top G")
+					.setValue(this.plugin.settings.top_g.toString())
+					.onChange(async (value) => {
+						this.plugin.settings.top_g = value.toString();
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
 			.setName("Repitition Penalty Range")
 			.setDesc("Repitition Penalty Range")
 			.addText((text) =>
@@ -650,6 +739,8 @@ async function generateMarkdown(this: NAI4Obsidian, generating: boolean) {
 			{ line: 0, ch: 0 },
 			cursorPosition
 		);
+		const lorebook = createLore(this.lore, textBeforeCursor);
+
 		const context = ContextBuilder(
 			textBeforeCursor,
 			{
@@ -661,7 +752,8 @@ async function generateMarkdown(this: NAI4Obsidian, generating: boolean) {
 			this.settings.model,
 			this.settings.sub,
 			Number(this.settings.tokens),
-			this.settings.generate_until_sentence
+			this.settings.generate_until_sentence,
+			lorebook
 		);
 		// check if "{" is in the text, 1000 characters before the cursor
 		let instruct = false;
