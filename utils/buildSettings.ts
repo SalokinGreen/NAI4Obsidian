@@ -121,7 +121,8 @@ export default function buildSettings(pkg: Package, def: boolean) {
 	let order = pkg.order.split(",").map((n) => Number(n));
 	// put settings in. If 0, don't add.
 	tokens !== 0 ? ((settings as any)["max_length"] = tokens) : 40;
-	top_p !== 0 ? ((settings as any)["top_p"] = top_a) : null;
+	top_p !== 0 ? ((settings as any)["top_p"] = top_p) : null;
+	top_a !== 0 ? ((settings as any)["top_a"] = top_a) : null;
 	top_k !== 0 ? ((settings as any)["top_k"] = top_k) : null;
 	temperature !== 0 ? ((settings as any)["temperature"] = temperature) : 0.9;
 	repetition_penalty !== 0
@@ -157,7 +158,7 @@ export default function buildSettings(pkg: Package, def: boolean) {
 			: null;
 	}
 	if (pkg.white_list) {
-		(settings as any)["white_list"] = [
+		(settings as any)["repetition_penalty_whitelist"] = [
 			49256, 49264, 49231, 49230, 49287, 85, 49255, 49399, 49262, 336,
 			333, 432, 363, 468, 492, 745, 401, 426, 623, 794, 1096, 2919, 2072,
 			7379, 1259, 2110, 620, 526, 487, 16562, 603, 805, 761, 2681, 942,
@@ -170,7 +171,7 @@ export default function buildSettings(pkg: Package, def: boolean) {
 		(settings as any)["cfg_scale"] = cfg_scale;
 	}
 
-	(settings as any)["phrase_repetition_penalty"] = phrase_rep_pen;
+	(settings as any)["phrase_rep_pen"] = phrase_rep_pen;
 	if (Number(pkg.mirostat_tau) > 0) {
 		(settings as any)["mirostat_tau"] = Number(pkg.mirostat_tau);
 		(settings as any)["mirostat_lr"] = Number(pkg.mirostat_lr);
@@ -178,6 +179,7 @@ export default function buildSettings(pkg: Package, def: boolean) {
 	if (Number(pkg.top_g) > 0) {
 		(settings as any)["top_g"] = Number(pkg.top_g);
 	}
+	(settings as any)["generate_until_sentence"] = true;
 	// build settings
 	return settings;
 }

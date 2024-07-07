@@ -89,7 +89,7 @@ export class LorebookModal extends Modal {
 				title.addEventListener("change", () => {
 					entry.title = title.value;
 					entryButton.innerText = title.value;
-					this.saveSettings();
+					this.saveSettings(this.entries);
 				});
 				title.addEventListener("keydown", (e) => {
 					if (e.key == "Enter") {
@@ -108,7 +108,7 @@ export class LorebookModal extends Modal {
 				});
 				onOffSwitch.addEventListener("change", () => {
 					entry.on = onOffSwitch.checked;
-					this.saveSettings();
+					this.saveSettings(this.entries);
 				});
 				// set the checkbox to its correct state
 				if (entry.on) {
@@ -124,7 +124,7 @@ export class LorebookModal extends Modal {
 				});
 				content.addEventListener("change", () => {
 					entry.content = content.value;
-					this.saveSettings();
+					this.saveSettings(this.entries);
 				});
 
 				// add keys
@@ -156,7 +156,7 @@ export class LorebookModal extends Modal {
 						keyArea.replaceWith(keyArea);
 
 						keyInput.value = "";
-						this.saveSettings();
+						this.saveSettings(this.entries);
 					}
 				});
 				entry.keys.forEach((key) => {
@@ -182,7 +182,7 @@ export class LorebookModal extends Modal {
 				});
 				alwaysOnSwitch.addEventListener("change", () => {
 					entry.alwaysOn = alwaysOnSwitch.checked;
-					this.saveSettings();
+					this.saveSettings(this.entries);
 				});
 				// set the checkbox to its correct state
 				if (entry.alwaysOn) {
@@ -206,7 +206,7 @@ export class LorebookModal extends Modal {
 				});
 				searchRange.addEventListener("change", () => {
 					entry.searchRange = parseInt(searchRange.value);
-					this.saveSettings();
+					this.saveSettings(this.entries);
 				});
 				searchRange.addEventListener("keydown", (e) => {
 					if (e.key == "Enter") {
@@ -227,7 +227,7 @@ export class LorebookModal extends Modal {
 				});
 				priority.addEventListener("change", () => {
 					entry.priority = parseInt(priority.value);
-					this.saveSettings();
+					this.saveSettings(this.entries);
 				});
 				priority.addEventListener("keydown", (e) => {
 					if (e.key == "Enter") {
@@ -241,10 +241,10 @@ export class LorebookModal extends Modal {
 				});
 				deleteButton.addEventListener("click", (k) => {
 					k.preventDefault();
-					this.entries = this.entries.filter((e) => e != entry);
+					this.entries = this.entries.filter((e) => e.id != entry.id);
 					entryButton.remove();
+					this.saveSettings(this.entries);
 					form.remove();
-					this.saveSettings();
 				});
 
 				// change right container to form
@@ -266,7 +266,7 @@ export class LorebookModal extends Modal {
 
 	onClose() {
 		let { contentEl } = this;
-		this.saveSettings();
+		this.saveSettings(this.entries);
 		contentEl.empty();
 	}
 }

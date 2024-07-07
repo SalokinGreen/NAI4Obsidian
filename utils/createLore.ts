@@ -1,6 +1,9 @@
 import { Entry } from "lorebook";
 import checkForKeys from "./checkForKeys";
 export default function createLore(lore: Entry[], story: string) {
+	console.log(lore);
+	if (lore.length === 0 || lore === undefined) return [];
+
 	// filter lore by 'on'
 	let filteredLore = lore.filter((entry) => entry.on);
 	// sort lore by 'priority'

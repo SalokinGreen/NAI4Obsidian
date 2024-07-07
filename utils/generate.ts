@@ -13,8 +13,13 @@ export default async function generate(
 	key: string,
 	model: string,
 	prefix: string,
-	inst: boolean
+	inst: boolean,
+	customEndPoint: string
 ) {
+	let apiEndpoint = "https://api.novelai.net/ai/generate";
+	if (customEndPoint !== "") {
+		apiEndpoint = customEndPoint;
+	}
 	if (model === "clio-v1") {
 		tokenizerData = require("../tokenizers/nerdstash_tokenizer.json");
 		encoder = new Encoder(
@@ -49,7 +54,7 @@ export default async function generate(
 	console.log(body);
 	console.log(headers);
 	const response = await requestUrl({
-		url: "https://api.novelai.net/ai/generate",
+		url: apiEndpoint,
 		method: "POST",
 		body: JSON.stringify(body),
 		headers: headers,

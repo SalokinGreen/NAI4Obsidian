@@ -1,7 +1,7 @@
 {
 	"id": "nai4obsidian",
-	"name": "NAI 4 Obsidian",
-	"version": "1.1.2",
+	"name": "NovelAI",
+	"version": "1.2",
 	"minAppVersion": "0.15.0",
 	"description": "Generate text with NovelAI's models.",
 	"author": "SGreen",

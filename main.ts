@@ -51,6 +51,7 @@ interface Settings {
 	mirostat_tau: string;
 	mirostat_lr: string;
 	top_g: string;
+	customApiEndpoint: string;
 }
 
 const DefaultSettings: Settings = {
@@ -87,6 +88,7 @@ const DefaultSettings: Settings = {
 	mirostat_tau: "0",
 	mirostat_lr: "0",
 	top_g: "0",
+	customApiEndpoint: "",
 };
 
 export default class NAI4Obsidian extends Plugin {
@@ -95,7 +97,7 @@ export default class NAI4Obsidian extends Plugin {
 	lore: Entry[]; // lorebook entries
 	async onload() {
 		await this.loadSettings();
-		this.lore = await this.loadData();
+		this.lore = this.settings.lore;
 		if (!this.lore) {
 			this.lore = [];
 		}
@@ -208,7 +210,8 @@ export default class NAI4Obsidian extends Plugin {
 							this.settings.apiKey,
 							this.settings.model,
 							this.settings.prefix,
-							instruct
+							instruct,
+							this.settings.customApiEndpoint
 						);
 						codeMirror.replaceRange(
 							generated,
@@ -267,7 +270,7 @@ export default class NAI4Obsidian extends Plugin {
 				let modal = new LorebookModal(
 					this.app,
 					this.lore,
-					this.saveSettings.bind(this)
+					this.saveLore.bind(this)
 				);
 				modal.open();
 			},
@@ -288,6 +291,11 @@ export default class NAI4Obsidian extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+	async saveLore(lore: Entry[]) {
+		this.lore = lore;
+		this.settings.lore = lore;
+		await this.saveSettings();
 	}
 }
 
@@ -680,12 +688,12 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 			.setDesc("Phrase Repetition Penalty")
 			.addDropdown((dropdown) => {
 				dropdown
-					.addOption("Off", "Off")
-					.addOption("Very Light", "Very Light")
-					.addOption("Light", "Light")
-					.addOption("Medium", "Medium")
-					.addOption("Agressive", "Aggressive")
-					.addOption("Very Agressive", "Very Agressive")
+					.addOption("off", "Off")
+					.addOption("very_light", "Very Light")
+					.addOption("light", "Light")
+					.addOption("medium", "Medium")
+					.addOption("aggressive", "Aggressive")
+					.addOption("very_aggressive", "Very Agressive")
 					.setValue(this.plugin.settings.phrase_repetition_penalty)
 					.onChange(async (value) => {
 						this.plugin.settings.phrase_repetition_penalty = value;
@@ -712,6 +720,20 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 					.setValue(this.plugin.settings.instruct_range.toString())
 					.onChange(async (value) => {
 						this.plugin.settings.instruct_range = value.toString();
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
+			.setName("Custom Api Endpoint")
+			.setDesc(
+				"Custom API endpoint. Only add if you have a custom API endpoint and know your stuff! Has to use the NovelAI interface."
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Custom API Endpoint")
+					.setValue(this.plugin.settings.customApiEndpoint)
+					.onChange(async (value) => {
+						this.plugin.settings.customApiEndpoint = value;
 						await this.plugin.saveSettings();
 					})
 			);
@@ -775,7 +797,8 @@ async function generateMarkdown(this: NAI4Obsidian, generating: boolean) {
 				this.settings.apiKey,
 				this.settings.model,
 				this.settings.prefix,
-				instruct
+				instruct,
+				this.settings.customApiEndpoint
 			);
 			codeMirror.replaceRange(generated, cursorPosition, cursorPosition);
 			// get length of generated text
