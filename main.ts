@@ -52,6 +52,7 @@ interface Settings {
 	mirostat_lr: string;
 	top_g: string;
 	customApiEndpoint: string;
+	customModel: string;
 }
 
 const DefaultSettings: Settings = {
@@ -89,6 +90,7 @@ const DefaultSettings: Settings = {
 	mirostat_lr: "0",
 	top_g: "0",
 	customApiEndpoint: "",
+	customModel: "",
 };
 
 export default class NAI4Obsidian extends Plugin {
@@ -211,7 +213,8 @@ export default class NAI4Obsidian extends Plugin {
 							this.settings.model,
 							this.settings.prefix,
 							instruct,
-							this.settings.customApiEndpoint
+							this.settings.customApiEndpoint,
+							this.settings.customModel
 						);
 						codeMirror.replaceRange(
 							generated,
@@ -737,6 +740,20 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+		new Setting(containerEl)
+			.setName("Custom Model")
+			.setDesc(
+				"Custom model. Only add if you have a custom model and know your stuff! Has to use the NovelAI interface."
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Custom Model")
+					.setValue(this.plugin.settings.customModel)
+					.onChange(async (value) => {
+						this.plugin.settings.customModel = value;
+						await this.plugin.saveSettings();
+					})
+			);
 	}
 }
 // Function to stop from editing while generating
@@ -798,7 +815,8 @@ async function generateMarkdown(this: NAI4Obsidian, generating: boolean) {
 				this.settings.model,
 				this.settings.prefix,
 				instruct,
-				this.settings.customApiEndpoint
+				this.settings.customApiEndpoint,
+				this.settings.customModel
 			);
 			codeMirror.replaceRange(generated, cursorPosition, cursorPosition);
 			// get length of generated text

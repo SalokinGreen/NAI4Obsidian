@@ -14,7 +14,8 @@ export default async function generate(
 	model: string,
 	prefix: string,
 	inst: boolean,
-	customEndPoint: string
+	customEndPoint: string,
+	customModel: string
 ) {
 	let apiEndpoint = "https://api.novelai.net/ai/generate";
 	if (customEndPoint !== "") {
@@ -33,6 +34,9 @@ export default async function generate(
 	let newPrefix = prefix;
 	if (inst) {
 		newPrefix = "special_instruct";
+	}
+	if (customModel !== "") {
+		model = customModel;
 	}
 	const body = {
 		input: context,
