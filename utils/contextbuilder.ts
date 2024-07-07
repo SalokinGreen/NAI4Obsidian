@@ -46,7 +46,7 @@ export default function ContextBuilder(
 	}
 	const prefixTokens = prefix !== "" ? 40 : 0;
 	const generatedTokens = generate_until_sentence ? 20 : 0;
-	const memoryTokens = memory !== "" ? encoder.encode(memory + "\n") : [];
+	const memoryTokens = memory !== "" ? memory + "\n" : "";
 	const memoryLength = memoryTokens.length;
 	// builg ATTG
 	let attgString = "[ ";
@@ -65,7 +65,7 @@ export default function ContextBuilder(
 	// add closing bracket
 	attgString += " ]\n";
 
-	const attgTokens = encoder.encode(attgString);
+	const attgTokens = attgString;
 	const attgTokensLength = attgTokens.length;
 	const defaultTokens: number = tks[sub];
 	let loreContext = "";
@@ -76,7 +76,7 @@ export default function ContextBuilder(
 			loreSize += encoder.encode(l + "\n").length;
 		}
 	});
-	const loreTokens = encoder.encode(loreContext);
+	const loreTokens = loreContext;
 
 	let maxSize =
 		defaultTokens -
@@ -87,16 +87,12 @@ export default function ContextBuilder(
 		attgTokensLength -
 		loreTokens.length;
 
-	const encoded = encoder.encode(cleanMarkdown(text));
-	const reversedContext = encoded.reverse();
-	const turnedAroundContext = reversedContext.slice(0, maxSize);
-	const context = turnedAroundContext.reverse();
-	const finalConext = [
-		...attgTokens,
-		...memoryTokens,
-		...loreTokens,
-		...context,
-	];
+	const encoded = cleanMarkdown(text);
+	// const reversedContext = encoded.reverse();
+	// const turnedAroundContext = reversedContext.slice(0, maxSize);
+	// const context = turnedAroundContext.reverse();
+	const finalConext = attgTokens + memoryTokens + loreTokens + encoded;
+
 	return finalConext;
 }
 function cleanMarkdown(text: string) {
