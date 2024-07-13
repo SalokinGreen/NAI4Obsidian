@@ -53,7 +53,28 @@ interface Settings {
 	top_g: string;
 	customApiEndpoint: string;
 }
-
+interface Parameters {
+	model: string;
+	temperature: string;
+	top_p: string;
+	top_k: string;
+	repetition_penalty: string;
+	top_a: string;
+	typical_p: string;
+	tail_free_sampling: string;
+	repetition_penalty_range: string;
+	repetition_penalty_slope: string;
+	repetition_penalty_frequency: string;
+	repetition_penalty_presence: string;
+	cfg: string;
+	order: string;
+	defaultSettings: boolean;
+	white_list: boolean;
+	phrase_repetition_penalty: string;
+	mirostat_tau: string;
+	mirostat_lr: string;
+	top_g: string;
+}
 const DefaultSettings: Settings = {
 	email: "",
 	password: "",
@@ -95,7 +116,11 @@ export default class NAI4Obsidian extends Plugin {
 	settings: Settings;
 	generating: boolean = false;
 	lore: Entry[]; // lorebook entries
+
+	settingsTab: NAI4ObsidianSettings;
 	async onload() {
+		this.settingsTab = new NAI4ObsidianSettings(this.app, this);
+		this.addSettingTab(this.settingsTab);
 		await this.loadSettings();
 		this.lore = this.settings.lore;
 		if (!this.lore) {
@@ -275,8 +300,6 @@ export default class NAI4Obsidian extends Plugin {
 				modal.open();
 			},
 		});
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new NAI4ObsidianSettings(this.app, this));
 	}
 
 	async onunload() {}
@@ -305,6 +328,9 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 	constructor(app: App, plugin: NAI4Obsidian) {
 		super(app, plugin);
 		this.plugin = plugin;
+	}
+	refresh(): void {
+		this.display();
 	}
 
 	display(): void {
@@ -349,6 +375,27 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 					})
 			);
 
+		//  Default Preset Select
+		new Setting(containerEl)
+			.setName("Default Presets")
+			.setDesc("Load a default preset")
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOption("None", "None")
+					.addOption("Carefree", "Carefree (Kayra)")
+					.addOption("Stelenes", "Stelenes (Kayra)")
+					.addOption("Fresh Coffee (Kayra)", "Fresh Coffee (Kayra)")
+					.addOption("Asper", "Asper (Kayra)")
+					.addOption("Writer's Deamon", "Writer's Deamon (Kayra)")
+					.addOption("Vingt-Un", "Vingt-Un (Clio)")
+					.addOption("Long Press", "Long Press (Clio)")
+					.addOption("Edgewise", "Edgewise (Clio)")
+					.addOption("Fresh Coffee (Clio)", "Fresh Coffee (Clio)")
+					.addOption("Talker C", "Talker C (Clio)")
+					.onChange(async (value) => {
+						defaultPreset.call(this, value);
+					})
+			);
 		new Setting(containerEl)
 			.setName("Sub")
 			.setDesc("Your NovelAI sub")
@@ -807,7 +854,7 @@ async function generateMarkdown(this: NAI4Obsidian, generating: boolean) {
 			const generatedTextLines = generated.split("\n").length;
 			// move cursos to the end of the generated text
 			codeMirror.setCursor({
-				line: cursorPosition.line + generatedTextLines,
+				line: cursorPosition.line,
 				ch: generatedTextLength,
 			});
 		} catch (e) {
@@ -815,5 +862,287 @@ async function generateMarkdown(this: NAI4Obsidian, generating: boolean) {
 		}
 	} else {
 		new Notice("No active Markdown file.");
+	}
+}
+
+function setSettings(this: NAI4Obsidian, Parameters: Parameters) {
+	this.settings.model = Parameters.model;
+	this.settings.temperature = Parameters.temperature;
+	this.settings.top_p = Parameters.top_p;
+	this.settings.top_k = Parameters.top_k;
+	this.settings.repetition_penalty = Parameters.repetition_penalty;
+	this.settings.top_a = Parameters.top_a;
+	this.settings.typical_p = Parameters.typical_p;
+	this.settings.tail_free_sampling = Parameters.tail_free_sampling;
+	this.settings.repetition_penalty_range =
+		Parameters.repetition_penalty_range;
+	this.settings.repetition_penalty_slope =
+		Parameters.repetition_penalty_slope;
+	this.settings.repetition_penalty_frequency =
+		Parameters.repetition_penalty_frequency;
+	this.settings.repetition_penalty_presence =
+		Parameters.repetition_penalty_presence;
+	this.settings.cfg = Parameters.cfg;
+	this.settings.order = Parameters.order;
+	this.settings.defaultSettings = Parameters.defaultSettings;
+	this.settings.white_list = Parameters.white_list;
+	this.settings.phrase_repetition_penalty =
+		Parameters.phrase_repetition_penalty;
+	this.settings.mirostat_tau = Parameters.mirostat_tau;
+	this.settings.mirostat_lr = Parameters.mirostat_lr;
+	this.settings.top_g = Parameters.top_g;
+	this.saveSettings().then(() => {
+		if (this.settingsTab) {
+			this.settingsTab.refresh();
+		}
+	});
+}
+
+/* Carefree
+ */
+
+const Carefree: Parameters = {
+	order: "2, 3, 0, 4, 1",
+	model: "kayra-v1",
+	phrase_repetition_penalty: "aggressive",
+	repetition_penalty: "2.8",
+	repetition_penalty_frequency: "0.02",
+	repetition_penalty_presence: "0",
+	repetition_penalty_range: "2048",
+	repetition_penalty_slope: "0.02",
+	tail_free_sampling: "0.915",
+	temperature: "1.35",
+	top_a: "0.71",
+	top_k: "15",
+	top_p: "0.85",
+	typical_p: "0",
+	cfg: "0",
+	mirostat_lr: "0",
+	mirostat_tau: "0",
+	top_g: "0",
+	defaultSettings: true,
+	white_list: true,
+};
+
+const Stelenes: Parameters = {
+	model: "kayra-v1",
+	temperature: "2.5",
+	top_p: "",
+	top_k: "",
+	repetition_penalty: "1",
+	top_a: "",
+	typical_p: "0.969",
+	tail_free_sampling: "0.941",
+	repetition_penalty_range: "1024",
+	repetition_penalty_slope: "",
+	repetition_penalty_frequency: "0",
+	repetition_penalty_presence: "0",
+	cfg: "",
+	order: "3, 0, 5",
+	defaultSettings: true,
+	white_list: true,
+	phrase_repetition_penalty: "medium",
+	mirostat_tau: "",
+	mirostat_lr: "",
+	top_g: "",
+};
+
+const FreshCoffeeKayra: Parameters = {
+	model: "kayra-v1",
+	temperature: "1",
+	top_p: "1",
+	top_k: "25",
+	repetition_penalty: "1.9",
+	top_a: "0",
+	typical_p: "0",
+	tail_free_sampling: "0.925",
+	repetition_penalty_range: "768",
+	repetition_penalty_slope: "1",
+	repetition_penalty_frequency: "0.0025",
+	repetition_penalty_presence: "0.001",
+	cfg: "1",
+	order: "6, 0, 1, 2, 3",
+	defaultSettings: true,
+	white_list: true,
+	phrase_repetition_penalty: "off",
+	mirostat_tau: "0",
+	mirostat_lr: "0",
+	top_g: "0",
+};
+const Asper: Parameters = {
+	model: "kayra-v1",
+	temperature: "1.16",
+	top_p: "",
+	top_k: "175",
+	repetition_penalty: "1.68",
+	top_a: "",
+	typical_p: "0.96",
+	tail_free_sampling: "0.994",
+	repetition_penalty_range: "2240",
+	repetition_penalty_slope: "1.5",
+	repetition_penalty_frequency: "0",
+	repetition_penalty_presence: "0.005",
+	cfg: "",
+	order: "5, 0, 1, 3",
+	defaultSettings: true,
+	white_list: true,
+	phrase_repetition_penalty: "medium",
+	mirostat_tau: "",
+	mirostat_lr: "",
+	top_g: "",
+};
+const WritersDeamon: Parameters = {
+	model: "kayra-v1",
+	temperature: "1.5",
+	top_p: "0.95",
+	top_k: "",
+	repetition_penalty: "1.625",
+	top_a: "0.02",
+	typical_p: "0.95",
+	tail_free_sampling: "0.95",
+	repetition_penalty_range: "2016",
+	repetition_penalty_slope: "",
+	repetition_penalty_frequency: "0",
+	repetition_penalty_presence: "0",
+	cfg: "",
+	order: "8, 0, 5, 3, 2, 4",
+	defaultSettings: true,
+	white_list: true,
+	phrase_repetition_penalty: "very_aggressive",
+	mirostat_tau: "5",
+	mirostat_lr: "0.25",
+	top_g: "",
+};
+const VingtUn: Parameters = {
+	model: "clio-v1",
+	temperature: "1.21",
+	top_p: "0.912",
+	top_k: "0",
+	repetition_penalty: "1.21",
+	top_a: "",
+	typical_p: "0.912",
+	tail_free_sampling: "0.921",
+	repetition_penalty_range: "321",
+	repetition_penalty_slope: "2.1",
+	repetition_penalty_frequency: "0.00621",
+	repetition_penalty_presence: "0",
+	cfg: "",
+	order: "0, 5, 3, 2, 1",
+	defaultSettings: true,
+	white_list: true,
+	phrase_repetition_penalty: "very_light",
+	mirostat_tau: "",
+	mirostat_lr: "",
+	top_g: "",
+};
+const LongPress: Parameters = {
+	model: "clio-v1",
+	temperature: "1.155",
+	top_p: "",
+	top_k: "25",
+	repetition_penalty: "1.65",
+	top_a: "0.265",
+	typical_p: "0.985",
+	tail_free_sampling: "0.88",
+	repetition_penalty_range: "8192",
+	repetition_penalty_slope: "1.5",
+	repetition_penalty_frequency: "0.0085",
+	repetition_penalty_presence: "0.0125",
+	cfg: "",
+	order: "0, 4, 1, 5, 3",
+	defaultSettings: true,
+	white_list: true,
+	phrase_repetition_penalty: "very_light",
+	mirostat_tau: "",
+	mirostat_lr: "",
+	top_g: "",
+};
+const Edgewise: Parameters = {
+	model: "clio-v1",
+	temperature: "1.09",
+	top_p: "0.969",
+	top_k: "",
+	repetition_penalty: "1.09",
+	top_a: "0.09",
+	typical_p: "0.99",
+	tail_free_sampling: "0.969",
+	repetition_penalty_range: "8192",
+	repetition_penalty_slope: "0.069",
+	repetition_penalty_frequency: "0.006",
+	repetition_penalty_presence: "0.009",
+	cfg: "",
+	order: "4, 0, 5, 3, 2",
+	defaultSettings: true,
+	white_list: true,
+	phrase_repetition_penalty: "very_light",
+	mirostat_tau: "",
+	mirostat_lr: "",
+	top_g: "",
+};
+const FreshCoffeeClio: Parameters = {
+	model: "clio-v1",
+	temperature: "1",
+	top_p: "1",
+	top_k: "25",
+	repetition_penalty: "1.9",
+	top_a: "",
+	typical_p: "",
+	tail_free_sampling: "0.925",
+	repetition_penalty_range: "768",
+	repetition_penalty_slope: "3.33",
+	repetition_penalty_frequency: "0.0025",
+	repetition_penalty_presence: "0.001",
+	cfg: "",
+	order: "0, 1, 2, 3",
+	defaultSettings: true,
+	white_list: true,
+	phrase_repetition_penalty: "very_light",
+	mirostat_tau: "",
+	mirostat_lr: "",
+	top_g: "",
+};
+const TalkerC: Parameters = {
+	model: "clio-v1",
+	temperature: "1.5",
+	top_p: "0.75",
+	top_k: "10",
+	repetition_penalty: "2.25",
+	top_a: "0.08",
+	typical_p: "0.975",
+	tail_free_sampling: "0.967",
+	repetition_penalty_range: "8192",
+	repetition_penalty_slope: "0.09",
+	repetition_penalty_frequency: "0",
+	repetition_penalty_presence: "0.005",
+	cfg: "",
+	order: "1, 5, 0, 2, 3, 4",
+	defaultSettings: true,
+	white_list: true,
+	phrase_repetition_penalty: "very_light",
+	mirostat_tau: "",
+	mirostat_lr: "",
+	top_g: "",
+};
+function defaultPreset(name: string) {
+	if (name === "Carefree") {
+		setSettings.call(this.plugin, Carefree);
+	} else if (name === "Stelenes") {
+		setSettings.call(this.plugin, Stelenes);
+	} else if (name === "Fresh Coffee (Kayra)") {
+		setSettings.call(this.plugin, FreshCoffeeKayra);
+	} else if (name === "Asper") {
+		setSettings.call(this.plugin, Asper);
+	} else if (name === "Writer's Deamon") {
+		setSettings.call(this.plugin, WritersDeamon);
+	} else if (name === "Vingt-Un") {
+		setSettings.call(this.plugin, VingtUn);
+	} else if (name === "Long Press") {
+		setSettings.call(this.plugin, LongPress);
+	} else if (name === "Edgewise") {
+		setSettings.call(this.plugin, Edgewise);
+	} else if (name === "Fresh Coffee (Clio)") {
+		setSettings.call(this.plugin, FreshCoffeeClio);
+	} else if (name === "Talker C") {
+		setSettings.call(this.plugin, TalkerC);
 	}
 }

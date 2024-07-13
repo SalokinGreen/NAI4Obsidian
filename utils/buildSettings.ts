@@ -124,30 +124,34 @@ export default function buildSettings(pkg: Package, def: boolean) {
 	top_p !== 0 ? ((settings as any)["top_p"] = top_p) : null;
 	top_a !== 0 ? ((settings as any)["top_a"] = top_a) : null;
 	top_k !== 0 ? ((settings as any)["top_k"] = top_k) : null;
-	temperature !== 0 ? ((settings as any)["temperature"] = temperature) : 0.9;
+	temperature !== 0
+		? ((settings as any)["temperature"] = temperature)
+		: ((settings as any)["temperature"] = 0);
 	repetition_penalty !== 0
 		? ((settings as any)["repetition_penalty"] = repetition_penalty)
-		: 0.9;
-	typical_p !== 0 ? ((settings as any)["typical_p"] = typical_p) : 0.9;
+		: ((settings as any)["repetition_penalty"] = 0);
+	typical_p !== 0
+		? ((settings as any)["typical_p"] = typical_p)
+		: ((settings as any)["typical_p"] = 0.0);
 	tail_free_sampling !== 0
 		? ((settings as any)["tail_free_sampling"] = tail_free_sampling)
-		: 0.9;
+		: ((settings as any)["tail_free_sampling"] = 0);
 	repetition_penalty_range !== 0
 		? ((settings as any)["repetition_penalty_range"] =
 				repetition_penalty_range)
-		: 0.9;
+		: ((settings as any)["repetition_penalty_range"] = 0);
 	repetition_penalty_slope !== 0
 		? ((settings as any)["repetition_penalty_slope"] =
 				repetition_penalty_slope)
-		: 0.9;
+		: ((settings as any)["repetition_penalty_slope"] = 0);
 	repetition_penalty_frequency !== 0
 		? ((settings as any)["repetition_penalty_frequency"] =
 				repetition_penalty_frequency)
-		: 0.9;
+		: ((settings as any)["repetition_penalty_frequency"] = 0);
 	repetition_penalty_presence !== 0
 		? ((settings as any)["repetition_penalty_presence"] =
 				repetition_penalty_presence)
-		: 0.9;
+		: ((settings as any)["repetition_penalty_presence"] = 0);
 	(settings as any)["order"] = order;
 	if (def) {
 		defaults[pkg.model].bias
