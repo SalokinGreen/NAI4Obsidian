@@ -97,6 +97,7 @@ export default function ContextBuilder(
 		...loreTokens,
 		...context,
 	];
+	console.log(finalConext.length);
 	return finalConext;
 }
 function cleanMarkdown(text: string) {

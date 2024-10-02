@@ -313,6 +313,7 @@ export default class NAI4Obsidian extends Plugin {
 	}
 
 	async saveSettings() {
+		console.log("saving settings");
 		await this.saveData(this.settings);
 	}
 	async saveLore(lore: Entry[]) {
@@ -707,18 +708,7 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
-		new Setting(containerEl)
-			.setName("CFG")
-			.setDesc("CFG")
-			.addText((text) =>
-				text
-					.setPlaceholder("CFG")
-					.setValue(this.plugin.settings.cfg.toString())
-					.onChange(async (value) => {
-						this.plugin.settings.cfg = value.toString();
-						await this.plugin.saveSettings();
-					})
-			);
+
 		new Setting(containerEl)
 			.setName("White List")
 			.setDesc("White List")

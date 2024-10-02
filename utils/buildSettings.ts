@@ -116,7 +116,7 @@ export default function buildSettings(pkg: Package, def: boolean) {
 	let repetition_penalty_slope = Number(pkg.repetition_penalty_slope);
 	let repetition_penalty_frequency = Number(pkg.repetition_penalty_frequency);
 	let repetition_penalty_presence = Number(pkg.repetition_penalty_presence);
-	let cfg_scale = Number(pkg.cfg);
+
 	let phrase_rep_pen = pkg.phrase_repetition_penalty;
 	let order = pkg.order.split(",").map((n) => Number(n));
 	// put settings in. If 0, don't add.
@@ -170,9 +170,6 @@ export default function buildSettings(pkg: Package, def: boolean) {
 			5189, 567, 2032, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132,
 			588, 803, 1040, 49209, 4, 5, 6, 7, 8, 9, 10, 11, 12,
 		];
-	}
-	if (cfg_scale > 1) {
-		(settings as any)["cfg_scale"] = cfg_scale;
 	}
 
 	(settings as any)["phrase_rep_pen"] = phrase_rep_pen;
