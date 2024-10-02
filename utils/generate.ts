@@ -16,7 +16,12 @@ export default async function generate(
 	inst: boolean,
 	customEndPoint: string
 ) {
-	let apiEndpoint = "https://api.novelai.net/ai/generate";
+	let apiEndpoint = "https://text.novelai.net/ai/generate";
+	let check = 200;
+	if (model === "clio-v1") {
+		apiEndpoint = "https://api.novelai.net/ai/generate";
+		check = 201;
+	}
 	if (customEndPoint !== "") {
 		apiEndpoint = customEndPoint;
 	}
@@ -53,13 +58,14 @@ export default async function generate(
 	};
 	console.log(body);
 	console.log(headers);
+	console.log(apiEndpoint);
 	const response = await requestUrl({
 		url: apiEndpoint,
 		method: "POST",
 		body: JSON.stringify(body),
 		headers: headers,
 	});
-	if (response.status !== 201) {
+	if (response.status !== check) {
 		throw new Error("Failed to generate text");
 	}
 	const bss = response.json.output;
