@@ -17,6 +17,7 @@ import getKey from "utils/getNaiKey";
 import buildSettings from "utils/buildSettings";
 import ContextBuilder from "utils/contextbuilder";
 import generate from "utils/generate";
+
 interface Settings {
 	email: string;
 	password: string;
@@ -52,6 +53,9 @@ interface Settings {
 	mirostat_lr: string;
 	top_g: string;
 	customApiEndpoint: string;
+	math1_quad: string;
+	math1_quad_entropy_scale: string;
+	math1_temp: string;
 }
 interface Parameters {
 	model: string;
@@ -74,6 +78,9 @@ interface Parameters {
 	mirostat_tau: string;
 	mirostat_lr: string;
 	top_g: string;
+	math1_quad: string;
+	math1_quad_entropy_scale: string;
+	math1_temp: string;
 }
 const DefaultSettings: Settings = {
 	email: "",
@@ -110,6 +117,9 @@ const DefaultSettings: Settings = {
 	mirostat_lr: "0",
 	top_g: "0",
 	customApiEndpoint: "",
+	math1_quad: "0.4",
+	math1_quad_entropy_scale: "-0.1",
+	math1_temp: "-0.4",
 };
 
 export default class NAI4Obsidian extends Plugin {
@@ -383,6 +393,7 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 			.addDropdown((dropdown) =>
 				dropdown
 					.addOption("None", "None")
+					.addOption("Zany Scribe", "Zany Scribe (Kayra)")
 					.addOption("Carefree", "Carefree (Kayra)")
 					.addOption("Stelenes", "Stelenes (Kayra)")
 					.addOption("Fresh Coffee (Kayra)", "Fresh Coffee (Kayra)")
@@ -774,6 +785,43 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+		new Setting(containerEl)
+			.setName("Math1 Quad")
+			.setDesc("Math1 Quad")
+			.addText((text) =>
+				text
+					.setPlaceholder("Math1 Quad")
+					.setValue(this.plugin.settings.math1_quad)
+					.onChange(async (value) => {
+						this.plugin.settings.math1_quad = value;
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
+			.setName("Math1 Quad Entropy Scale")
+			.setDesc("Math1 Quad Entropy Scale")
+			.addText((text) =>
+				text
+					.setPlaceholder("Math1 Quad Entropy Scale")
+					.setValue(this.plugin.settings.math1_quad_entropy_scale)
+					.onChange(async (value) => {
+						this.plugin.settings.math1_quad_entropy_scale = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Math1 Temp")
+			.setDesc("Math1 Temp")
+			.addText((text) =>
+				text
+					.setPlaceholder("Math1 Temp")
+					.setValue(this.plugin.settings.math1_temp)
+					.onChange(async (value) => {
+						this.plugin.settings.math1_temp = value;
+						await this.plugin.saveSettings();
+					})
+			);
 	}
 }
 // Function to stop from editing while generating
@@ -1113,6 +1161,32 @@ const TalkerC: Parameters = {
 	mirostat_lr: "",
 	top_g: "",
 };
+
+const ZanyScribe: Parameters = {
+	model: "kayra-v1",
+	temperature: "1",
+	top_p: "0.99",
+	top_k: "",
+	repetition_penalty: "1",
+	top_a: "",
+	typical_p: "",
+	tail_free_sampling: "0.925",
+	repetition_penalty_range: "768",
+	repetition_penalty_slope: "1",
+	repetition_penalty_frequency: "0",
+	repetition_penalty_presence: "0",
+	cfg: "",
+	order: "0, 9, 2",
+	defaultSettings: true,
+	white_list: true,
+	phrase_repetition_penalty: "medium",
+	mirostat_tau: "",
+	mirostat_lr: "",
+	top_g: "",
+	math1_quad: "0.4",
+	math1_quad_entropy_scale: "-0.1",
+	math1_temp: "-0.4",
+};
 function defaultPreset(name: string) {
 	if (name === "Carefree") {
 		setSettings.call(this.plugin, Carefree);
@@ -1134,5 +1208,7 @@ function defaultPreset(name: string) {
 		setSettings.call(this.plugin, FreshCoffeeClio);
 	} else if (name === "Talker C") {
 		setSettings.call(this.plugin, TalkerC);
+	} else if (name === "Zany Scribe") {
+		setSettings.call(this.plugin, ZanyScribe);
 	}
 }

@@ -7,9 +7,9 @@ interface Tks {
 const tks: Tks = {
 	opus: 8192,
 
-	scroll: 6144,
+	scroll: 8192,
 
-	tablet: 3072,
+	tablet: 4096,
 };
 let encoder = new Encoder(
 	tokenizerData.vocab,
@@ -98,6 +98,8 @@ export default function ContextBuilder(
 		...context,
 	];
 	console.log(finalConext.length);
+	console.log("True Context: " + encoder.decode(finalConext));
+
 	return finalConext;
 }
 function cleanMarkdown(text: string) {

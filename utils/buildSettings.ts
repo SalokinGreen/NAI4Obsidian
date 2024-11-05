@@ -1,3 +1,14 @@
+/* New settings:
+math1_quad
+: 
+0.4
+math1_quad_entropy_scale
+: 
+-0.1
+math1_temp
+: 
+-0.4
+*/
 interface Package {
 	email: string;
 	password: string;
@@ -29,6 +40,9 @@ interface Package {
 	mirostat_tau: string;
 	mirostat_lr: string;
 	top_g: string;
+	math1_quad: string;
+	math1_quad_entropy_scale: string;
+	math1_temp: string;
 }
 interface Defaults {
 	[key: string]: {
