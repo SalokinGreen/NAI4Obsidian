@@ -59,20 +59,67 @@ export default async function generate(
 	console.log(body);
 	console.log(headers);
 	console.log(apiEndpoint);
-	const response = await requestUrl({
-		url: apiEndpoint,
-		method: "POST",
-		body: JSON.stringify(body),
-		headers: headers,
-	});
-	if (response.status !== check) {
-		throw new Error("Failed to generate text");
+	try {
+		const response = await requestUrl({
+			url: apiEndpoint,
+			method: "POST",
+			body: JSON.stringify(body),
+			headers: headers,
+		});
+
+		// Enhanced error handling
+		if (response.status !== check) {
+			const errorMessage = `Failed to generate text (${response.status})`;
+
+			// Handle specific error codes
+			switch (response.status) {
+				case 401:
+					throw new Error(
+						`${errorMessage}: Invalid API key or unauthorized access`
+					);
+				case 402:
+					throw new Error(
+						`${errorMessage}: Payment required - Check your NovelAI subscription`
+					);
+				case 429:
+					throw new Error(
+						`${errorMessage}: Too many requests - Please wait before trying again`
+					);
+				case 500:
+				case 502:
+				case 503:
+				case 504:
+					throw new Error(
+						`${errorMessage}: NovelAI service error - Please try again later`
+					);
+				default:
+					throw new Error(
+						`${errorMessage}: Unexpected error occurred`
+					);
+			}
+		}
+
+		// Check if response has output
+		if (!response.json?.output) {
+			throw new Error("No output received from NovelAI");
+		}
+
+		const bss = response.json.output;
+		const bs = base64ToBinaryString(bss);
+		const ua = binaryStringToUint8Array(bs);
+		const numbers = uint8ArrayToNumbers(ua);
+		console.log("Text:\n", numbers);
+		return numbers;
+	} catch (error) {
+		// Handle network errors and other exceptions
+		if (error instanceof Error) {
+			throw new Error(`Generation failed: ${error.message}`);
+		} else {
+			throw new Error(
+				"An unexpected error occurred during text generation"
+			);
+		}
 	}
-	const bss = response.json.output;
-	const bs = base64ToBinaryString(bss);
-	const ua = binaryStringToUint8Array(bs);
-	const numbers = uint8ArrayToNumbers(ua);
-	return numbers;
 }
 // Make to byte
 // Convert the array of numbers into an array of 16-bit little endian binary strings

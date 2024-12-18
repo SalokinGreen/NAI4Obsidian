@@ -1,5 +1,6 @@
 import { Encoder } from "nai-js-tokenizer";
 let tokenizerData = require("../tokenizers/nerdstash_tokenizer_v2.json");
+import llamaTokenizer from "llama3-tokenizer-js";
 
 interface Tks {
 	[key: string]: number;
@@ -35,20 +36,29 @@ export default function ContextBuilder(
 	generate_until_sentence: boolean,
 	lore: string[]
 ) {
-	if (model === "clio-v1") {
-		tokenizerData = require("../tokenizers/nerdstash_tokenizer.json");
-		encoder = new Encoder(
-			tokenizerData.vocab,
-			tokenizerData.merges,
-			tokenizerData.specialTokens,
-			tokenizerData.config
-		);
-	}
+	const encodeForModel = (text: string): number[] => {
+		if (model === "llama-3-erato-v1") {
+			return llamaTokenizer.encode(text);
+		}
+
+		if (model === "clio-v1") {
+			tokenizerData = require("../tokenizers/nerdstash_tokenizer.json");
+			encoder = new Encoder(
+				tokenizerData.vocab,
+				tokenizerData.merges,
+				tokenizerData.specialTokens,
+				tokenizerData.config
+			);
+		}
+		return encoder.encode(text);
+	};
+
 	const prefixTokens = prefix !== "" ? 40 : 0;
 	const generatedTokens = generate_until_sentence ? 20 : 0;
-	const memoryTokens = memory !== "" ? encoder.encode(memory + "\n") : [];
+	const memoryTokens = memory !== "" ? encodeForModel(memory + "\n") : [];
 	const memoryLength = memoryTokens.length;
-	// builg ATTG
+
+	// Build ATTG
 	let attgString = "[ ";
 	if (attg.author !== "") {
 		attgString += "Author: " + attg.author + "; ";
@@ -60,23 +70,23 @@ export default function ContextBuilder(
 	if (attg.genre !== "") {
 		attgString += "Genre: " + attg.genre + "; ";
 	}
-	// remove last semicolon
 	attgString = attgString.slice(0, -2);
-	// add closing bracket
 	attgString += " ]\n";
 
-	const attgTokens = encoder.encode(attgString);
+	const attgTokens = encodeForModel(attgString);
 	const attgTokensLength = attgTokens.length;
 	const defaultTokens: number = tks[sub];
+
 	let loreContext = "";
 	let loreSize = 0;
 	lore.forEach((l) => {
-		if (loreSize + encoder.encode(l + "\n").length < defaultTokens - 1000) {
+		const encodedLoreSize = encodeForModel(l + "\n").length;
+		if (loreSize + encodedLoreSize < defaultTokens - 1000) {
 			loreContext += l + "\n";
-			loreSize += encoder.encode(l + "\n").length;
+			loreSize += encodedLoreSize;
 		}
 	});
-	const loreTokens = encoder.encode(loreContext);
+	const loreTokens = encodeForModel(loreContext);
 
 	let maxSize =
 		defaultTokens -
@@ -87,20 +97,27 @@ export default function ContextBuilder(
 		attgTokensLength -
 		loreTokens.length;
 
-	const encoded = encoder.encode(cleanMarkdown(text));
+	const encoded = encodeForModel(cleanMarkdown(text));
 	const reversedContext = encoded.reverse();
 	const turnedAroundContext = reversedContext.slice(0, maxSize);
 	const context = turnedAroundContext.reverse();
-	const finalConext = [
+
+	const finalContext = [
 		...attgTokens,
 		...memoryTokens,
 		...loreTokens,
 		...context,
 	];
-	console.log(finalConext.length);
-	console.log("True Context: " + encoder.decode(finalConext));
 
-	return finalConext;
+	console.log(finalContext.length);
+	console.log(
+		"True Context: " +
+			(model === "llama-3-erato-v1"
+				? llamaTokenizer.decode(finalContext)
+				: encoder.decode(finalContext))
+	);
+	console.log(finalContext);
+	return finalContext;
 }
 function cleanMarkdown(text: string) {
 	console.log("Before: " + text);

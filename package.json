@@ -28,6 +28,7 @@
 		"express": "^4.18.2",
 		"libsodium-wrappers": "^0.7.11",
 		"libsodium-wrappers-sumo": "^0.7.11",
+		"llama3-tokenizer-js": "^1.2.0",
 		"nai-js-tokenizer": "^1.0.1"
 	}
 }

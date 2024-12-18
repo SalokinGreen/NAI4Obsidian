@@ -17,7 +17,8 @@ import getKey from "utils/getNaiKey";
 import buildSettings from "utils/buildSettings";
 import ContextBuilder from "utils/contextbuilder";
 import generate from "utils/generate";
-
+import { ProgressNotice } from "progressnotice";
+import { CountDisplay } from "countDisplay";
 interface Settings {
 	email: string;
 	password: string;
@@ -56,6 +57,7 @@ interface Settings {
 	math1_quad: string;
 	math1_quad_entropy_scale: string;
 	math1_temp: string;
+	showStatusBar: boolean;
 }
 interface Parameters {
 	model: string;
@@ -78,9 +80,9 @@ interface Parameters {
 	mirostat_tau: string;
 	mirostat_lr: string;
 	top_g: string;
-	math1_quad: string;
-	math1_quad_entropy_scale: string;
-	math1_temp: string;
+	math1_quad?: string;
+	math1_quad_entropy_scale?: string;
+	math1_temp?: string;
 }
 const DefaultSettings: Settings = {
 	email: "",
@@ -120,6 +122,7 @@ const DefaultSettings: Settings = {
 	math1_quad: "0.4",
 	math1_quad_entropy_scale: "-0.1",
 	math1_temp: "-0.4",
+	showStatusBar: true,
 };
 
 export default class NAI4Obsidian extends Plugin {
@@ -128,6 +131,32 @@ export default class NAI4Obsidian extends Plugin {
 	lore: Entry[]; // lorebook entries
 
 	settingsTab: NAI4ObsidianSettings;
+	public countStatusBar: HTMLElement;
+
+	private statusBarEvents: any[] = [];
+
+	public registerStatusBarEvents() {
+		// Clear any existing events
+		this.statusBarEvents.forEach((evt) => evt());
+		this.statusBarEvents = [];
+
+		// Register new events
+		this.statusBarEvents.push(
+			this.registerEvent(
+				this.app.workspace.on("active-leaf-change", () =>
+					this.updateStatusBar()
+				)
+			)
+		);
+		this.statusBarEvents.push(
+			this.registerEvent(
+				this.app.workspace.on("editor-change", () =>
+					this.updateStatusBar()
+				)
+			)
+		);
+	}
+
 	async onload() {
 		this.settingsTab = new NAI4ObsidianSettings(this.app, this);
 		this.addSettingTab(this.settingsTab);
@@ -264,6 +293,16 @@ export default class NAI4Obsidian extends Plugin {
 						});
 					} catch (e) {
 						console.error(e);
+						// Show error to user via Notice
+						new Notice(
+							`${
+								e instanceof Error
+									? e.message
+									: "Failed to generate text"
+							}`
+						);
+						// Optional: Add error logging
+						console.error("Generation error:", e);
 					}
 					codeMirror.setCursor({
 						line: cursorPosition.line + 1,
@@ -272,6 +311,7 @@ export default class NAI4Obsidian extends Plugin {
 				} else {
 					new Notice("No active Markdown file.");
 				}
+
 				this.generating = false;
 				await this.saveSettings();
 			},
@@ -310,9 +350,63 @@ export default class NAI4Obsidian extends Plugin {
 				modal.open();
 			},
 		});
+		this.addCommand({
+			id: "show-counts",
+			name: "Show word and token counts",
+			editorCallback: (editor) => {
+				const selection = editor.getSelection();
+				const text = selection || editor.getValue();
+				CountDisplay.showCounts(text, this.settings.model);
+			},
+		});
+		// Add status bar item
+		if (this.settings.showStatusBar) {
+			this.countStatusBar = this.addStatusBarItem();
+			this.registerEvent(
+				this.app.workspace.on("active-leaf-change", () =>
+					this.updateStatusBar()
+				)
+			);
+			this.registerEvent(
+				this.app.workspace.on("editor-change", () =>
+					this.updateStatusBar()
+				)
+			);
+		}
+		// Initialize status bar if enabled
+		if (this.settings.showStatusBar) {
+			this.countStatusBar = this.addStatusBarItem();
+			this.registerStatusBarEvents();
+		}
 	}
+	public updateStatusBar() {
+		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (view) {
+			const text = view.editor.getValue();
+			const words = CountDisplay.countWords(text);
+			const tokens = CountDisplay.countTokens(text, this.settings.model);
+			this.countStatusBar.setText(`${words} Words ${tokens} Tokens`);
+		} else {
+			this.countStatusBar.setText("");
+		}
 
-	async onunload() {}
+		this.countStatusBar = this.addStatusBarItem();
+		this.registerEvent(
+			this.app.workspace.on("active-leaf-change", () =>
+				this.updateStatusBar()
+			)
+		);
+		this.registerEvent(
+			this.app.workspace.on("editor-change", () => this.updateStatusBar())
+		);
+	}
+	async onunload() {
+		// Clean up status bar events
+		this.statusBarEvents.forEach((evt) => evt());
+		if (this.countStatusBar) {
+			this.countStatusBar.remove();
+		}
+	}
 
 	async loadSettings() {
 		this.settings = Object.assign(
@@ -404,6 +498,7 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 					.addOption("Edgewise", "Edgewise (Clio)")
 					.addOption("Fresh Coffee (Clio)", "Fresh Coffee (Clio)")
 					.addOption("Talker C", "Talker C (Clio)")
+					.addOption("Zany Scribe (Erato)", "Zany Scribe (Erato)")
 					.onChange(async (value) => {
 						defaultPreset.call(this, value);
 					})
@@ -429,6 +524,7 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 				dropdown
 					.addOption("clio-v1", "clio-v1")
 					.addOption("kayra-v1", "kayra-v1")
+					.addOption("llama-3-erato-v1", "erato-v1")
 					.setValue(this.plugin.settings.model)
 					.onChange(async (value) => {
 						this.plugin.settings.model = value;
@@ -822,6 +918,31 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+
+		new Setting(containerEl)
+			.setName("Show Status Bar")
+			.setDesc("Show word and token counts in status bar")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.showStatusBar)
+					.onChange(async (value) => {
+						this.plugin.settings.showStatusBar = value;
+						// Remove existing status bar if it exists
+						if (this.plugin.countStatusBar) {
+							this.plugin.countStatusBar.remove();
+						}
+
+						if (value) {
+							// Create new status bar and set up listeners
+							this.plugin.countStatusBar =
+								this.plugin.addStatusBarItem();
+							this.plugin.registerStatusBarEvents();
+							this.plugin.updateStatusBar();
+						}
+
+						await this.plugin.saveSettings();
+					})
+			);
 	}
 }
 // Function to stop from editing while generating
@@ -832,22 +953,31 @@ async function setFilePermissions(file: TFile, readOnly: boolean) {
 	await vault.create(file.path, fileContent, { readOnly });
 }
 async function generateMarkdown(this: NAI4Obsidian, generating: boolean) {
-	new Notice("Generating...");
-	await this.saveSettings();
+	const progress = new ProgressNotice("Generating text");
 
-	const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-	if (markdownView) {
+	try {
+		await this.saveSettings();
+
+		const markdownView =
+			this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (!markdownView) {
+			progress.hide();
+			new Notice("No active Markdown file.");
+			return;
+		}
+
 		const codeMirror = markdownView.editor;
-		const file = markdownView.file;
-
-		// Proceed with the next steps
 		const cursorPosition = codeMirror.getCursor();
 		const textBeforeCursor = codeMirror.getRange(
 			{ line: 0, ch: 0 },
 			cursorPosition
 		);
-		const lorebook = createLore(this.lore, textBeforeCursor);
 
+		// Show context building progress
+		progress.hide();
+		const contextProgress = new ProgressNotice("Building context");
+
+		const lorebook = createLore(this.lore, textBeforeCursor);
 		const context = ContextBuilder(
 			textBeforeCursor,
 			{
@@ -862,19 +992,24 @@ async function generateMarkdown(this: NAI4Obsidian, generating: boolean) {
 			this.settings.generate_until_sentence,
 			lorebook
 		);
-		// check if "{" is in the text, 1000 characters before the cursor
+
+		contextProgress.hide();
+		const generatingProgress = new ProgressNotice("Requesting completion");
+
 		let instruct = false;
 		let instructRange = Number(this.settings.instruct_range);
 		instructRange = instructRange * -1;
 		if (textBeforeCursor.slice(instructRange).includes("{")) {
 			instruct = true;
 		}
+
 		const settings = await buildSettings(
 			{
 				...this.settings,
 			},
 			this.settings.defaultSettings
 		);
+
 		try {
 			const generated = await generate(
 				context,
@@ -885,24 +1020,57 @@ async function generateMarkdown(this: NAI4Obsidian, generating: boolean) {
 				instruct,
 				this.settings.customApiEndpoint
 			);
+
+			generatingProgress.hide();
+			// Show generation stats
+			const stats = {
+				contextWords: CountDisplay.countWords(textBeforeCursor),
+				contextTokens: context.length,
+				generatedWords: CountDisplay.countWords(generated),
+				generatedTokens: CountDisplay.countTokens(
+					generated,
+					this.settings.model
+				),
+			};
+
+			// Create a status element
+			const statusEl = this.addStatusBarItem();
+			statusEl.setText(
+				`Context: ${stats.contextTokens}🔤 ${stats.contextWords}📝 | Generated: ${stats.generatedTokens}🔤 ${stats.generatedWords}📝`
+			);
+
+			// Remove after 5 seconds
+			setTimeout(() => statusEl.remove(), 5000);
+			new Notice("Generation complete!", 2000);
+
 			codeMirror.replaceRange(generated, cursorPosition, cursorPosition);
-			// get length of generated text
+
 			const generatedTextLength = generated.length;
-			// get lines of generated text
 			const generatedTextLines = generated.split("\n").length;
-			// move cursos to the end of the generated text
+
 			codeMirror.setCursor({
-				line: cursorPosition.line,
+				line: cursorPosition.line + generatedTextLines,
 				ch: generatedTextLength,
 			});
 		} catch (e) {
+			generatingProgress.hide();
+			new Notice(
+				`Generation failed: ${
+					e instanceof Error ? e.message : "Unknown error"
+				}`,
+				3000
+			);
 			console.error(e);
 		}
-	} else {
-		new Notice("No active Markdown file.");
+	} catch (e) {
+		progress.hide();
+		new Notice(
+			`Error: ${e instanceof Error ? e.message : "Unknown error"}`,
+			3000
+		);
+		console.error(e);
 	}
 }
-
 function setSettings(this: NAI4Obsidian, Parameters: Parameters) {
 	this.settings.model = Parameters.model;
 	this.settings.temperature = Parameters.temperature;
@@ -1187,6 +1355,32 @@ const ZanyScribe: Parameters = {
 	math1_quad_entropy_scale: "-0.1",
 	math1_temp: "-0.4",
 };
+const ZanyScribeErato: Parameters = {
+	model: "llama-3-erato-v1",
+	temperature: "1",
+	top_p: "0.98",
+	top_k: "",
+	repetition_penalty: "1",
+	top_a: "",
+	typical_p: "",
+	tail_free_sampling: "",
+	repetition_penalty_range: "3024",
+	repetition_penalty_slope: "1.1",
+	repetition_penalty_frequency: "",
+	repetition_penalty_presence: "0.25",
+	cfg: "",
+	order: "9, 2",
+	defaultSettings: true,
+	white_list: true,
+	phrase_repetition_penalty: "medium",
+	mirostat_tau: "",
+	mirostat_lr: "",
+	top_g: "",
+	math1_quad: "0.35",
+	math1_quad_entropy_scale: "-0.2",
+	math1_temp: "-0.275",
+};
+
 function defaultPreset(name: string) {
 	if (name === "Carefree") {
 		setSettings.call(this.plugin, Carefree);
@@ -1210,5 +1404,7 @@ function defaultPreset(name: string) {
 		setSettings.call(this.plugin, TalkerC);
 	} else if (name === "Zany Scribe") {
 		setSettings.call(this.plugin, ZanyScribe);
+	} else if (name === "Zany Scribe (Erato)") {
+		setSettings.call(this.plugin, ZanyScribeErato);
 	}
 }
