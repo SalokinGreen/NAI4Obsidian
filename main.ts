@@ -19,6 +19,7 @@ import ContextBuilder from "utils/contextbuilder";
 import generate from "utils/generate";
 import { ProgressNotice } from "progressnotice";
 import { CountDisplay } from "countDisplay";
+import llama3Tokenizer from "llama3-tokenizer-js";
 interface Settings {
 	email: string;
 	password: string;
@@ -1043,6 +1044,31 @@ async function generateMarkdown(this: NAI4Obsidian, generating: boolean) {
 			setTimeout(() => statusEl.remove(), 5000);
 			new Notice("Generation complete!", 2000);
 
+			// Delete the last token if llama-3-erato-v1
+			let string = "";
+			if (this.settings.model === "llama-3-erato-v1") {
+				// tokenize line
+				const line = codeMirror.getLine(cursorPosition.line);
+				const tokens = llama3Tokenizer.encode(line);
+				console.log("TOKENS", tokens);
+				// measure the length of the last token
+				const lastToken = tokens[tokens.length - 2];
+				string = llama3Tokenizer.decode([lastToken]);
+				console.log("STRING", string);
+				//
+				// delete the last token
+				codeMirror.replaceRange(
+					"",
+					{
+						line: cursorPosition.line,
+						ch: cursorPosition.ch - string.length,
+					},
+					cursorPosition
+				);
+			}
+			// new cursor position after the last token was removed. - string length
+			cursorPosition.ch = cursorPosition.ch - string.length;
+			// Insert the generated text and account for the removed token
 			codeMirror.replaceRange(generated, cursorPosition, cursorPosition);
 
 			const generatedTextLength = generated.length;
