@@ -7,7 +7,6 @@ let encoder = new Encoder(
 	tokenizerData.specialTokens,
 	tokenizerData.config
 );
-import llama3Tokenizer from "llama3-tokenizer-js";
 
 export default async function generate(
 	context: number[],
@@ -24,6 +23,14 @@ export default async function generate(
 		apiEndpoint = "https://api.novelai.net/ai/generate";
 		check = 201;
 		tokenizerData = require("../tokenizers/nerdstash_tokenizer.json");
+		encoder = new Encoder(
+			tokenizerData.vocab,
+			tokenizerData.merges,
+			tokenizerData.specialTokens,
+			tokenizerData.config
+		);
+	} else if (model === "llama-3-erato-v1") {
+		tokenizerData = require("../tokenizers/llama3nai_tokenizer.json");
 		encoder = new Encoder(
 			tokenizerData.vocab,
 			tokenizerData.merges,
@@ -117,10 +124,9 @@ export default async function generate(
 		const numbers = isLlama
 			? uint8ArrayToNumbers32Bit(ua)
 			: uint8ArrayToNumbers16Bit(ua);
-
-		return isLlama
-			? llama3Tokenizer.decode(numbers)
-			: encoder.decode(numbers);
+		// remove first token from generated text
+		numbers.shift();
+		return encoder.decode(numbers);
 	} catch (error) {
 		if (error instanceof Error) {
 			throw new Error(`Generation failed: ${error.message}`);

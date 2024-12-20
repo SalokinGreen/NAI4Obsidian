@@ -1,6 +1,5 @@
 import { Encoder } from "nai-js-tokenizer";
 let tokenizerData = require("../tokenizers/nerdstash_tokenizer_v2.json");
-import llamaTokenizer from "llama3-tokenizer-js";
 
 interface Tks {
 	[key: string]: number;
@@ -37,12 +36,16 @@ export default function ContextBuilder(
 	lore: string[]
 ) {
 	const encodeForModel = (text: string): number[] => {
-		if (model === "llama-3-erato-v1") {
-			return llamaTokenizer.encode(text);
-		}
-
 		if (model === "clio-v1") {
 			tokenizerData = require("../tokenizers/nerdstash_tokenizer.json");
+			encoder = new Encoder(
+				tokenizerData.vocab,
+				tokenizerData.merges,
+				tokenizerData.specialTokens,
+				tokenizerData.config
+			);
+		} else if (model === "llama-3-erato-v1") {
+			tokenizerData = require("../tokenizers/llama3nai_tokenizer.json");
 			encoder = new Encoder(
 				tokenizerData.vocab,
 				tokenizerData.merges,
@@ -110,12 +113,7 @@ export default function ContextBuilder(
 	];
 
 	console.log(finalContext.length);
-	console.log(
-		"True Context: " +
-			(model === "llama-3-erato-v1"
-				? llamaTokenizer.decode(finalContext)
-				: encoder.decode(finalContext))
-	);
+	console.log("True Context: " + encoder.decode(finalContext));
 	console.log(finalContext);
 	return finalContext;
 }

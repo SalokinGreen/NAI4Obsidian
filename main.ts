@@ -488,18 +488,24 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 			.addDropdown((dropdown) =>
 				dropdown
 					.addOption("None", "None")
+					// Kayra presets
 					.addOption("Zany Scribe", "Zany Scribe (Kayra)")
 					.addOption("Carefree", "Carefree (Kayra)")
 					.addOption("Stelenes", "Stelenes (Kayra)")
 					.addOption("Fresh Coffee (Kayra)", "Fresh Coffee (Kayra)")
 					.addOption("Asper", "Asper (Kayra)")
 					.addOption("Writer's Deamon", "Writer's Deamon (Kayra)")
+					// Clio presets
 					.addOption("Vingt-Un", "Vingt-Un (Clio)")
 					.addOption("Long Press", "Long Press (Clio)")
 					.addOption("Edgewise", "Edgewise (Clio)")
 					.addOption("Fresh Coffee (Clio)", "Fresh Coffee (Clio)")
 					.addOption("Talker C", "Talker C (Clio)")
+					// Erato presets
 					.addOption("Zany Scribe (Erato)", "Zany Scribe (Erato)")
+					.addOption("Golden Arrow (Erato)", "Golden Arrow (Erato)")
+					.addOption("Wilder (Erato)", "Wilder (Erato)")
+					.addOption("Dragonfruit (Erato)", "Dragonfruit (Erato)")
 					.onChange(async (value) => {
 						defaultPreset.call(this, value);
 					})
@@ -1406,7 +1412,84 @@ const ZanyScribeErato: Parameters = {
 	math1_quad_entropy_scale: "-0.2",
 	math1_temp: "-0.275",
 };
+const GoldenArrowErato: Parameters = {
+	model: "llama-3-erato-v1",
+	temperature: "1",
+	top_p: "0.995",
+	top_k: "",
+	repetition_penalty: "1.5",
+	top_a: "",
+	typical_p: "",
+	tail_free_sampling: "",
+	repetition_penalty_range: "2240",
+	repetition_penalty_slope: "1",
+	repetition_penalty_frequency: "0",
+	repetition_penalty_presence: "0",
+	cfg: "",
+	order: "9, 2",
+	defaultSettings: true,
+	white_list: true,
+	phrase_repetition_penalty: "light",
+	mirostat_tau: "",
+	mirostat_lr: "",
+	top_g: "",
+	math1_quad: "0.19",
+	math1_quad_entropy_scale: "-0.08",
+	math1_temp: "0.5",
+};
+const WilderErato: Parameters = {
+	model: "llama-3-erato-v1",
+	temperature: "1",
+	top_p: "",
+	top_k: "",
+	repetition_penalty: "1.4",
+	top_a: "",
+	typical_p: "",
+	tail_free_sampling: "",
+	repetition_penalty_range: "2240",
+	repetition_penalty_slope: "0.64",
+	repetition_penalty_frequency: "0",
+	repetition_penalty_presence: "0",
+	cfg: "",
+	order: "9, 10",
+	defaultSettings: true,
+	white_list: true,
+	phrase_repetition_penalty: "medium",
+	mirostat_tau: "",
+	mirostat_lr: "",
+	top_g: "",
+	math1_quad: "0.19",
+	math1_quad_entropy_scale: "-0.095",
+	math1_temp: "0",
+};
 
+const DragonfruitErato: Parameters = {
+	model: "llama-3-erato-v1",
+	temperature: "1.37",
+	top_p: "",
+	top_k: "",
+	repetition_penalty: "3.25",
+	top_a: "0.1",
+	typical_p: "0.875",
+	tail_free_sampling: "",
+	repetition_penalty_range: "6000",
+	repetition_penalty_slope: "3.25",
+	repetition_penalty_frequency: "0",
+	repetition_penalty_presence: "0",
+	cfg: "",
+	order: "0, 5, 9, 10, 8, 4",
+	defaultSettings: true,
+	white_list: true,
+	phrase_repetition_penalty: "off",
+	mirostat_tau: "4",
+	mirostat_lr: "0.2",
+	top_g: "",
+	math1_quad: "0.07",
+	math1_quad_entropy_scale: "-0.05",
+	math1_temp: "0.9",
+};
+
+// Update the defaultPreset function to include the new preset
 function defaultPreset(name: string) {
 	if (name === "Carefree") {
 		setSettings.call(this.plugin, Carefree);
@@ -1428,9 +1511,15 @@ function defaultPreset(name: string) {
 		setSettings.call(this.plugin, FreshCoffeeClio);
 	} else if (name === "Talker C") {
 		setSettings.call(this.plugin, TalkerC);
-	} else if (name === "Zany Scribe") {
+	} else if (name === "Zany Scribe (Kayra)") {
 		setSettings.call(this.plugin, ZanyScribe);
 	} else if (name === "Zany Scribe (Erato)") {
 		setSettings.call(this.plugin, ZanyScribeErato);
+	} else if (name === "Golden Arrow (Erato)") {
+		setSettings.call(this.plugin, GoldenArrowErato);
+	} else if (name === "Wilder (Erato)") {
+		setSettings.call(this.plugin, WilderErato);
+	} else if (name === "Dragonfruit (Erato)") {
+		setSettings.call(this.plugin, DragonfruitErato);
 	}
 }
