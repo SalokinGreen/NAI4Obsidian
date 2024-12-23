@@ -105,13 +105,24 @@ export default function ContextBuilder(
 	const turnedAroundContext = reversedContext.slice(0, maxSize);
 	const context = turnedAroundContext.reverse();
 
-	const finalContext = [
+	const CONTEXT_FULL_THRESHOLD = 500; // Define what "nearly full" means. I will when I find out. O.O
+	let finalContext = [
 		...attgTokens,
 		...memoryTokens,
 		...loreTokens,
 		...context,
 	];
-
+	if (model === "llama-3-erato-v1") {
+		if (finalContext.length >= defaultTokens - CONTEXT_FULL_THRESHOLD) {
+			if (finalContext.length === defaultTokens) {
+				finalContext[0] = 128000;
+			} else {
+				finalContext.unshift(128000);
+			}
+		} else {
+			finalContext.unshift(128081);
+		}
+	}
 	console.log(finalContext.length);
 	console.log("True Context: " + encoder.decode(finalContext));
 	console.log(finalContext);

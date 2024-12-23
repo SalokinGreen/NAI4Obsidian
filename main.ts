@@ -123,7 +123,7 @@ const DefaultSettings: Settings = {
 	math1_quad: "0.4",
 	math1_quad_entropy_scale: "-0.1",
 	math1_temp: "-0.4",
-	showStatusBar: true,
+	showStatusBar: false,
 };
 
 export default class NAI4Obsidian extends Plugin {
@@ -292,6 +292,8 @@ export default class NAI4Obsidian extends Plugin {
 							line: cursorPosition.line + generatedTextLines,
 							ch: generatedTextLength,
 						});
+						// Get last token from line and delete it
+						let string = "";
 					} catch (e) {
 						console.error(e);
 						// Show error to user via Notice
@@ -489,7 +491,7 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 				dropdown
 					.addOption("None", "None")
 					// Kayra presets
-					.addOption("Zany Scribe", "Zany Scribe (Kayra)")
+					.addOption("Zany Scribe (Kayra)", "Zany Scribe (Kayra)")
 					.addOption("Carefree", "Carefree (Kayra)")
 					.addOption("Stelenes", "Stelenes (Kayra)")
 					.addOption("Fresh Coffee (Kayra)", "Fresh Coffee (Kayra)")
@@ -925,31 +927,31 @@ class NAI4ObsidianSettings extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+		// Fix this later, Green!
+		// new Setting(containerEl)
+		// 	.setName("Show Status Bar")
+		// 	.setDesc("Show word and token counts in status bar")
+		// 	.addToggle((toggle) =>
+		// 		toggle
+		// 			.setValue(this.plugin.settings.showStatusBar)
+		// 			.onChange(async (value) => {
+		// 				this.plugin.settings.showStatusBar = value;
+		// 				// Remove existing status bar if it exists
+		// 				if (this.plugin.countStatusBar) {
+		// 					this.plugin.countStatusBar.remove();
+		// 				}
 
-		new Setting(containerEl)
-			.setName("Show Status Bar")
-			.setDesc("Show word and token counts in status bar")
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.showStatusBar)
-					.onChange(async (value) => {
-						this.plugin.settings.showStatusBar = value;
-						// Remove existing status bar if it exists
-						if (this.plugin.countStatusBar) {
-							this.plugin.countStatusBar.remove();
-						}
+		// 				if (value) {
+		// 					// Create new status bar and set up listeners
+		// 					this.plugin.countStatusBar =
+		// 						this.plugin.addStatusBarItem();
+		// 					this.plugin.registerStatusBarEvents();
+		// 					this.plugin.updateStatusBar();
+		// 				}
 
-						if (value) {
-							// Create new status bar and set up listeners
-							this.plugin.countStatusBar =
-								this.plugin.addStatusBarItem();
-							this.plugin.registerStatusBarEvents();
-							this.plugin.updateStatusBar();
-						}
-
-						await this.plugin.saveSettings();
-					})
-			);
+		// 				await this.plugin.saveSettings();
+		// 			})
+		// 	);
 	}
 }
 // Function to stop from editing while generating

@@ -45,8 +45,10 @@ export default async function generate(
 	// Convert tokens to binary based on model type
 	const isLlama = model === "llama-3-erato-v1";
 	// crop last token from context
-	context.pop();
-	let lastToken = context.pop();
+	let lastToken = null;
+	if (isLlama) {
+		lastToken = context.pop();
+	}
 	const binaryArray = isLlama
 		? to32BitLittleEndianBinaryArray(context)
 		: to16BitLittleEndianBinaryArray(context);
@@ -125,7 +127,7 @@ export default async function generate(
 			? uint8ArrayToNumbers32Bit(ua)
 			: uint8ArrayToNumbers16Bit(ua);
 		// remove first token from generated text
-		numbers.shift();
+		// numbers.shift();
 		return encoder.decode(numbers);
 	} catch (error) {
 		if (error instanceof Error) {
